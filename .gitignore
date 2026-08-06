@@ -18,5 +18,41 @@ main.js
 # obsidian
 data.json
 
-# Exclude macOS Finder (System Explorer) View States
+# macOS
 .DS_Store
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.fseventsd
+.DocumentRevisions-V100
+.TemporaryItems
+.apdisk
+Icon?
+*.icloud
+
+# Test / coverage output
+coverage/
+.nyc_output/
+*.lcov
+
+# Secrets / local environment files
+.env
+.env.*
+!.env.example
+
+# Local Kilo state and configuration (may contain API keys / local-only
+# settings). Blanket-ignored for now; revisit selective tracking of
+# non-secret shared Kilo config (agents/commands/kilo.json) in a later stage.
+.kilo/
+
+# Local scratch artifacts (not part of the plugin or its docs)
+scratch/
+.scratch/
+tmp/
+*.tmp
+
+# Ad hoc / local screenshots (not committed doc assets)
+screenshots/
+.screenshots/
