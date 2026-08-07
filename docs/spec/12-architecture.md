@@ -188,6 +188,18 @@ traversal, scope resolution, plan computation — can be unit-tested against an 
 fake and stay decoupled from Obsidian/storage technology, per the core-purity rule (see
 `src/core/README.md`, `src/ports/README.md`).
 
+**Non-blocking adapters.** Ports carry no performance contract themselves — that's the
+adapter's job. `MetadataPort` reads are expected to stay synchronous and cheap because
+`metadataCache` is in-memory; this is by design, not a jank risk, and nothing here asks
+`MetadataPort` to become async. `FileContentPort` reads are inherently async
+(`vault.read` / `vault.cachedRead` already return Promises). `PersistencePort` and
+`VaultWritePort` adapters must not block the calling path — batch writes, use IndexedDB
+transactions appropriately, and never synchronously wait on I/O inside a call that Layer
+3 or a Worker expects to return quickly. The debounce/throttle/coalescing behaviour that
+keeps the §12.8 pacing targets achievable lives in Layer 1's event queue and Layer 3's
+coalesced rebuild logic (§12.1, §12.3) — it is orchestration-layer responsibility, not
+something a port interface can or should enforce.
+
 ---
 
 ## Decision Record
