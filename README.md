@@ -38,6 +38,17 @@ Quick starting guide for new plugin devs:
 > You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
 > The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
 
+## Manifest requirements
+
+`manifest.json` must include (non-exhaustive): `id`, `name`, `version`
+(SemVer `x.y.z`), `minAppVersion`, `description`, `isDesktopOnly` (boolean).
+Optional: `author`, `authorUrl`, `fundingUrl`.
+
+- Never change `id` after release — treat it as a stable API.
+- Keep `minAppVersion` accurate whenever a release starts depending on
+  newer Obsidian APIs.
+- Canonical validation rules: https://github.com/obsidianmd/obsidian-releases/blob/master/.github/workflows/validate-plugin-entry.yml
+
 ## Adding your plugin to the community plugin list
 
 - Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
@@ -55,6 +66,22 @@ Quick starting guide for new plugin devs:
 ## Manually installing the plugin
 
 - Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+- Reload Obsidian and enable the plugin under **Settings → Community
+  plugins**.
+
+## Troubleshooting
+
+- Plugin doesn't load after build: ensure `main.js` and `manifest.json` are
+  at the top level of the plugin folder under
+  `<Vault>/.obsidian/plugins/<plugin-id>/`.
+- Build issues: if `main.js` is missing, run `npm run build` or
+  `npm run dev` to compile the TypeScript source.
+- Commands not appearing: verify `addCommand` runs after `onload` and IDs
+  are unique.
+- Settings not persisting: ensure `loadData`/`saveData` are awaited and the
+  UI re-renders after changes.
+- Mobile-only issues: confirm no desktop-only APIs are used; check
+  `isDesktopOnly` and adjust.
 
 ## Improve code quality with eslint
 
@@ -87,6 +114,10 @@ If you have multiple URLs, you can also do:
 }
 ```
 
-## API Documentation
+## References
 
-See https://docs.obsidian.md
+- Obsidian sample plugin: https://github.com/obsidianmd/obsidian-sample-plugin
+- API documentation: https://docs.obsidian.md
+- Developer policies: https://docs.obsidian.md/Developer+policies
+- Plugin guidelines: https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines
+- Style guide: https://help.obsidian.md/style-guide
