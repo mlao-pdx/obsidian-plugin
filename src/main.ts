@@ -1,21 +1,10 @@
-import {
-	Editor,
-	MarkdownView,
-	MarkdownFileInfo,
-	Modal,
-	Notice,
-	Plugin,
-} from 'obsidian';
-import {
-	DEFAULT_SETTINGS,
-	NarradinPluginSettings,
-	NarradinSettingTab,
-} from './settings';
+import { Editor, MarkdownView, type MarkdownFileInfo, Modal, Notice, Plugin } from 'obsidian';
+import { DEFAULT_SETTINGS, type NarradinPluginSettings, NarradinSettingTab } from './settings';
 
 export default class NarradinPlugin extends Plugin {
 	settings!: NarradinPluginSettings;
 
-	async onload() {
+	override async onload() {
 		await this.loadSettings();
 
 		// This creates an icon in the left ribbon.
@@ -40,10 +29,7 @@ export default class NarradinPlugin extends Plugin {
 		this.addCommand({
 			id: 'replace-selected',
 			name: 'Replace selected content',
-			editorCallback: (
-				editor: Editor,
-				_ctx: MarkdownView | MarkdownFileInfo,
-			) => {
+			editorCallback: (editor: Editor, _ctx: MarkdownView | MarkdownFileInfo) => {
 				editor.replaceSelection('Sample editor command');
 			},
 		});
@@ -53,8 +39,7 @@ export default class NarradinPlugin extends Plugin {
 			name: 'Open modal (complex)',
 			checkCallback: (checking: boolean) => {
 				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
+				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
 				if (markdownView) {
 					// If checking is true, we're simply "checking" if the command can be run.
 					// If checking is false, then we want to actually perform the operation.
@@ -79,7 +64,7 @@ export default class NarradinPlugin extends Plugin {
 		});
 	}
 
-	onunload() {}
+	override onunload() {}
 
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -95,12 +80,12 @@ export default class NarradinPlugin extends Plugin {
 }
 
 class ExampleModal extends Modal {
-	onOpen() {
+	override onOpen() {
 		const { contentEl } = this;
 		contentEl.setText('Woah!');
 	}
 
-	onClose() {
+	override onClose() {
 		const { contentEl } = this;
 		contentEl.empty();
 	}

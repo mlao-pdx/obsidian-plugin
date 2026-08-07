@@ -1,5 +1,6 @@
 import obsidianmd from 'eslint-plugin-obsidianmd';
 import globals from 'globals';
+import prettier from 'eslint-config-prettier';
 import { globalIgnores, defineConfig } from 'eslint/config';
 
 export default defineConfig(
@@ -29,4 +30,5 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	prettier,
 );
