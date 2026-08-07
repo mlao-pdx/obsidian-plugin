@@ -1,0 +1,31 @@
+# Part 0: Glossary
+
+## Part 0: Glossary
+
+| Term                    | Meaning                                                                                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Realm**               | Top-level self-contained story world (Discworld, Cosmere). The only unskippable hierarchy level. Nothing exists to Narradin outside a Realm. |
+| **Folder Note**         | A note carrying a **folder-level** `is` value. The folder _containing_ it becomes a structural boundary.                                     |
+| **Leaf Note**           | A note carrying a **leaf-level** `is` value. Never a boundary, wherever it sits.                                                             |
+| **Companion**           | A note or file attached to a host Narrative note (`__prose`, `__beats`). A subsection of its host, with no independent narrative position.   |
+| **Generated Companion** | A Companion written _by_ Narradin (compiler output). Excluded from indexing, replacement, and re-compilation.                                |
+| **Host Group**          | A Narrative note together with all its Companions. The unit across which positional values (POV, settings) resolve.                          |
+| **Player**              | A world entity: Character, Object, Lore, Location, Other.                                                                                    |
+| **Plot**                | A structural thread: Plot, Thread, Theme, Arc. Mechanically identical to a Player.                                                           |
+| **Scope**               | The bounding box a note operates in: which Narrative notes a command, report, query, or rewrite may see or touch.                            |
+| **Island**              | A subtree severed from outer traversal by a hierarchy-order violation. Internally functional, externally invisible.                          |
+| **Concept Note**        | The note an `is` value links to (`[[A Story Realm]]`). Need not pre-exist; created on demand in `_narradin`.                                 |
+| **Source Note**         | A note whose basename and aliases are tracked and propagated. Defaults to all Player and Plot `is` values.                                   |
+| **Note Property**       | Frontmatter metadata whose subject is the note it sits in (`is`, `for`, `pov`).                                                              |
+| **Entity Property**     | Metadata whose subject is an entity named in its key. Frontmatter or body. Many per key per note.                                            |
+| **Position**            | A four-part tuple locating any record in the manuscript: sequence index, companion rank, line, offset.                                       |
+| **Content Sequence**    | The narrative sequence of a scope with each note followed by its Companions. The single ordering primitive.                                  |
+| **System Marker**       | An Entity Property whose subject is a lozenge-prefixed System concept (`◊outtake`, `◊pov`).                                                  |
+| **Discriminator**       | A non-role context. Used to distinguish threads within one entity when pairing setups and payoffs.                                           |
+
+**Terminology in user-facing text.** Every notice, modal, and report uses the author's
+_configured_ concept names, never Narradin's internal ones. If Realm was renamed to
+"Universe", the toast reads _"The 'Stormlight Archive' Universe's folder could not be
+renamed…"_.
+
+---

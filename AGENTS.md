@@ -95,3 +95,6 @@ Follow Obsidian's Developer Policies and Plugin Guidelines. In particular:
   troubleshooting, reference links: `README.md`.
 - Example file structure, common task code snippets, UI copy/UX
   guidelines: `obsidian-plugin-patterns` skill.
+- Functional specification (the "what" and "why" of Narradin's design,
+  including architecture-boundary rationale to consult when writing/
+  reviewing lint rules): `docs/spec/README.md`.
