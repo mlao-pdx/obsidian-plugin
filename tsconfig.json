@@ -22,9 +22,8 @@
     "skipLibCheck": true,
     "noEmit": true,
 
-    "baseUrl": ".",
     "paths": {
-      "@core/*": ["src/core/*"]
+      "@core/*": ["./src/core/*"]
     }
   },
   "include": ["src/**/*.ts", "tests/**/*.ts", "types/**/*.d.ts"]
