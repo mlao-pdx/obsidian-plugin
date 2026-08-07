@@ -261,95 +261,108 @@ a **single-writer lease**:
 
 This is the longest dependency chain in the design. Each decision forced the next.
 
+**Chain:** I1 blast radius → I2 watermark scope → I3 ledger location → I4 index role →
+I5 multi-device.
+
 ```mermaid
-flowchart TD
-    I1{{How wide is an alias rename allowed to reach}}
-    P1[Vault wide]
-    P2[Bounded by the Realm]
-    P3[Bounded by the Source Note own scope]
-    I1 --> P1
-    I1 --> P2
-    I1 --> P3
-    C1(CON Two Realms each with a Kate corrupt each other)
-    P1 --> C1
-    A1(PRO Matches the Realm blast radius principle)
-    C2(CON Two Books in one Realm each with a Kate still collide)
-    P2 --> A1
-    P2 --> C2
-    A2(PRO Same rule already used for progressions)
-    A3(PRO Sibling Books stop colliding so collision blocking mostly evaporates)
-    C3(CON A bit player mentioned outside their scope is missed)
-    P3 --> A2
-    P3 --> A3
-    P3 --> C3
-    M1(MITIGATION accepted as a textbook Half Fix)
-    C3 --> M1
-    D1([DECIDED bounded by the Source Note own scope])
-    P3 ==> D1
+flowchart LR
+    subgraph S1["I1: How wide is an alias rename allowed to reach"]
+        I1{{How wide is an alias rename allowed to reach}}
+        P1[Vault wide]
+        P2[Bounded by the Realm]
+        P3[Bounded by the Source Note own scope]
+        I1 --> P1
+        I1 --> P2
+        I1 --> P3
+        C1(CON Two Realms each with a Kate corrupt each other)
+        P1 --> C1
+        A1(PRO Matches the Realm blast radius principle)
+        C2(CON Two Books in one Realm each with a Kate still collide)
+        P2 --> A1
+        P2 --> C2
+        A2(PRO Same rule already used for progressions)
+        A3(PRO Sibling Books stop colliding so collision blocking mostly evaporates)
+        C3(CON A bit player mentioned outside their scope is missed)
+        P3 --> A2
+        P3 --> A3
+        P3 --> C3
+        M1(MITIGATION accepted as a textbook Half Fix)
+        C3 --> M1
+        D1([DECIDED bounded by the Source Note own scope])
+        P3 ==> D1
+    end
     D1 -.-> I2
-    I2{{Is a single global ledger watermark still coherent}}
-    A4(PRO One note may be fully propagated across its Book while another has a backlog across its Series)
-    P4[No it is incoherent]
-    I2 --> P4
-    P4 --> A4
-    D2([DECIDED watermark must be per note])
-    P4 ==> D2
+    subgraph S2["I2: Is a single global ledger watermark still coherent"]
+        I2{{Is a single global ledger watermark still coherent}}
+        A2a(PRO One note may be fully propagated across its Book while another has a backlog across its Series)
+        P2a[No it is incoherent]
+        I2 --> P2a
+        P2a --> A2a
+        D2([DECIDED watermark must be per note])
+        P2a ==> D2
+    end
     D2 -.-> I3
-    I3{{Where does per note alias history live}}
-    P5[IndexedDB keyed by note]
-    P6[Frontmatter as narradin fka]
-    I3 --> P5
-    I3 --> P6
-    C4(CON Database and vault can diverge with no reconciliation path)
-    C5(CON Does not survive a device wipe)
-    P5 --> C4
-    P5 --> C5
-    A5(PRO Vault is truth so rebuild becomes trivial)
-    A6(PRO Survives sync and device loss)
-    C6(CON Ugly in the properties panel)
-    C7(CON Deletion fires after the file is gone so history is unreadable)
-    C8(CON Grows without bound)
-    P6 --> A5
-    P6 --> A6
-    P6 --> C6
-    P6 --> C7
-    P6 --> C8
-    M2(MITIGATION JSON string plus CSS hiding)
-    M3(MITIGATION in memory shadow refreshed on metadata change)
-    M4(MITIGATION prune resolved threads and delete the property when empty)
-    C6 --> M2
-    C7 --> M3
-    C8 --> M4
-    D3([DECIDED fka lives in the vault transiently])
-    P6 ==> D3
+    subgraph S3["I3: Where does per note alias history live"]
+        I3{{Where does per note alias history live}}
+        P3a[IndexedDB keyed by note]
+        P3b[Frontmatter as narradin fka]
+        I3 --> P3a
+        I3 --> P3b
+        C3a(CON Database and vault can diverge with no reconciliation path)
+        C3b(CON Does not survive a device wipe)
+        P3a --> C3a
+        P3a --> C3b
+        A3a(PRO Vault is truth so rebuild becomes trivial)
+        A3b(PRO Survives sync and device loss)
+        C3c(CON Ugly in the properties panel)
+        C3d(CON Deletion fires after the file is gone so history is unreadable)
+        C3e(CON Grows without bound)
+        P3b --> A3a
+        P3b --> A3b
+        P3b --> C3c
+        P3b --> C3d
+        P3b --> C3e
+        M3a(MITIGATION JSON string plus CSS hiding)
+        M3b(MITIGATION in memory shadow refreshed on metadata change)
+        M3c(MITIGATION prune resolved threads and delete the property when empty)
+        C3c --> M3a
+        C3d --> M3b
+        C3e --> M3c
+        D3([DECIDED fka lives in the vault transiently])
+        P3b ==> D3
+    end
     D3 -.-> I4
-    I4{{What is IndexedDB for then}}
-    P7[Authoritative store]
-    P8[Rebuildable read cache]
-    I4 --> P7
-    I4 --> P8
-    A7(PRO Superset masking needs a scope wide substring query)
-    A8(PRO A lost index costs a rebuild never data)
-    P8 --> A7
-    P8 --> A8
-    D4([DECIDED vault is truth index is a cache])
-    P8 ==> D4
+    subgraph S4["I4: What is IndexedDB for then"]
+        I4{{What is IndexedDB for then}}
+        P4a[Authoritative store]
+        P4b[Rebuildable read cache]
+        I4 --> P4a
+        I4 --> P4b
+        A4a(PRO Superset masking needs a scope wide substring query)
+        A4b(PRO A lost index costs a rebuild never data)
+        P4b --> A4a
+        P4b --> A4b
+        D4([DECIDED vault is truth index is a cache])
+        P4b ==> D4
+    end
     D4 -.-> I5
-    I5{{How is multi device handled}}
-    P9[CRDT reconciliation]
-    P10[alias mtime marker]
-    P11[Single writer lease]
-    I5 --> P9
-    I5 --> P10
-    I5 --> P11
-    C9(CON Disproportionate complexity)
-    C10(CON Tells you a device resolved something not which backlog it applied)
-    P9 --> C9
-    P10 --> C10
-    A9(PRO Claiming ownership is cheap because there is no ledger to rebuild)
-    P11 --> A9
-    D5([DECIDED single writer lease device id in localStorage])
-    P11 ==> D5
+    subgraph S5["I5: How is multi device handled"]
+        I5{{How is multi device handled}}
+        P5a[CRDT reconciliation]
+        P5b[alias mtime marker]
+        P5c[Single writer lease]
+        I5 --> P5a
+        I5 --> P5b
+        I5 --> P5c
+        C5a(CON Disproportionate complexity)
+        C5b(CON Tells you a device resolved something not which backlog it applied)
+        P5a --> C5a
+        P5b --> C5b
+        A5a(PRO Claiming ownership is cheap because there is no ledger to rebuild)
+        P5c --> A5a
+        D5([DECIDED single writer lease device id in localStorage])
+        P5c ==> D5
+    end
 ```
 
 **Note the direction of causation.** Narrowing the blast radius for _correctness_
@@ -361,51 +374,59 @@ again and the last three decisions lose their justification.
 
 ## B.5 Alias Replacement Safety
 
+**Chain:** I1 replacement scope → I2 compound-alias masking → I3 short-alias guard.
+
 ```mermaid
-flowchart TD
-    I1{{How do we avoid destroying prose during replacement}}
-    P1[Fence out tables code blocks and quotes]
-    P2[Search everywhere case sensitive]
-    I1 --> P1
-    I1 --> P2
-    C1(CON Entity names genuinely appear everywhere including headings and tables)
-    P1 --> C1
-    A1(PRO A blunt find and replace would do the same damage)
-    A2(PRO Audience is novelists not coders)
-    P2 --> A1
-    P2 --> A2
-    D1([DECIDED search everywhere except wikilink destinations])
-    P2 ==> D1
-    I2{{How is Vimes protected inside Captain Vimes}}
-    P3[Superset masking plus word boundaries]
-    I2 --> P3
-    A3(PRO Registered compound aliases are masked before replacement)
-    C2(CON Unregistered compounds like Jean Luc are unprotected)
-    P3 --> A3
-    P3 --> C2
-    M1(MITIGATION Init reports every alias containing a hyphen or apostrophe)
-    C2 --> M1
-    D2([DECIDED superset masking plus word boundaries])
-    P3 ==> D2
-    I3{{Do we skip aliases shorter than three characters}}
-    P4[Yes guard against single letter disasters]
-    P5[No drop the guard]
-    I3 --> P4
-    I3 --> P5
-    A4(PRO Prevents renaming Q across a manuscript)
-    C3(CON Mention Index shares this machinery)
-    C4(CON A character named Ed would have no progressions at all not merely no renames)
-    C5(CON Length is the wrong proxy the real risk is dictionary collision)
-    C6(CON Dictionary collision was already accepted with Grace was said at the table)
-    P4 --> A4
-    P4 --> C3
-    P4 --> C4
-    P4 --> C5
-    P4 --> C6
-    A5(PRO Report rather than gate)
-    P5 --> A5
-    D3([DECIDED guard removed replaced by Init advisory and per pass report])
-    P5 ==> D3
+flowchart LR
+    subgraph S1["I1: How do we avoid destroying prose during replacement"]
+        I1{{How do we avoid destroying prose during replacement}}
+        P1[Fence out tables code blocks and quotes]
+        P2[Search everywhere case sensitive]
+        I1 --> P1
+        I1 --> P2
+        C1(CON Entity names genuinely appear everywhere including headings and tables)
+        P1 --> C1
+        A1(PRO A blunt find and replace would do the same damage)
+        A2(PRO Audience is novelists not coders)
+        P2 --> A1
+        P2 --> A2
+        D1([DECIDED search everywhere except wikilink destinations])
+        P2 ==> D1
+    end
+    subgraph S2["I2: How is Vimes protected inside Captain Vimes"]
+        I2{{How is Vimes protected inside Captain Vimes}}
+        P2a[Superset masking plus word boundaries]
+        I2 --> P2a
+        A2a(PRO Registered compound aliases are masked before replacement)
+        C2a(CON Unregistered compounds like Jean Luc are unprotected)
+        P2a --> A2a
+        P2a --> C2a
+        M2a(MITIGATION Init reports every alias containing a hyphen or apostrophe)
+        C2a --> M2a
+        D2([DECIDED superset masking plus word boundaries])
+        P2a ==> D2
+    end
+    subgraph S3["I3: Do we skip aliases shorter than three characters"]
+        I3{{Do we skip aliases shorter than three characters}}
+        P3a[Yes guard against single letter disasters]
+        P3b[No drop the guard]
+        I3 --> P3a
+        I3 --> P3b
+        A3a(PRO Prevents renaming Q across a manuscript)
+        C3a(CON Mention Index shares this machinery)
+        C3b(CON A character named Ed would have no progressions at all not merely no renames)
+        C3c(CON Length is the wrong proxy the real risk is dictionary collision)
+        C3d(CON Dictionary collision was already accepted with Grace was said at the table)
+        P3a --> A3a
+        P3a --> C3a
+        P3a --> C3b
+        P3a --> C3c
+        P3a --> C3d
+        A3b(PRO Report rather than gate)
+        P3b --> A3b
+        D3([DECIDED guard removed replaced by Init advisory and per pass report])
+        P3b ==> D3
+    end
 ```
 
 **This one was a live bug, not a preference.** The guard was written as shared with the

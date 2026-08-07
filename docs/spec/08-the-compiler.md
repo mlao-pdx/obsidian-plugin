@@ -117,56 +117,65 @@ Two requirements follow:
 
 ## B.8 Compiler Output
 
+**Chain:** I1 compiled output destination → I2 overwrite authority → I3 output
+versioning.
+
 ```mermaid
-flowchart TD
-    I1{{Where does compiled text go}}
-    P1[Inserted at the cursor as hard text]
-    P2[Written to a Generated Companion]
-    I1 --> P1
-    I1 --> P2
-    A1(PRO No embed or codeblock rendering pathologies)
-    C1(CON A multi megabyte compile locks the editor)
-    C2(CON Output is re ingested so every property is counted twice)
-    C3(CON The alias engine would rewrite the export while sources drift)
-    P1 --> A1
-    P1 --> C1
-    P1 --> C2
-    P1 --> C3
-    A2(PRO Excluded from indexing by construction)
-    A3(PRO Repeatable and overwritable)
-    A4(PRO Still hard text so it satisfies the original requirement)
-    P2 --> A2
-    P2 --> A3
-    P2 --> A4
-    D1([DECIDED Generated Companion written in the background])
-    P2 ==> D1
+flowchart LR
+    subgraph S1["I1: Where does compiled text go"]
+        I1{{Where does compiled text go}}
+        P1[Inserted at the cursor as hard text]
+        P2[Written to a Generated Companion]
+        I1 --> P1
+        I1 --> P2
+        A1(PRO No embed or codeblock rendering pathologies)
+        C1(CON A multi megabyte compile locks the editor)
+        C2(CON Output is re ingested so every property is counted twice)
+        C3(CON The alias engine would rewrite the export while sources drift)
+        P1 --> A1
+        P1 --> C1
+        P1 --> C2
+        P1 --> C3
+        A2(PRO Excluded from indexing by construction)
+        A3(PRO Repeatable and overwritable)
+        A4(PRO Still hard text so it satisfies the original requirement)
+        P2 --> A2
+        P2 --> A3
+        P2 --> A4
+        D1([DECIDED Generated Companion written in the background])
+        P2 ==> D1
+    end
     D1 -.-> I2
-    I2{{What decides whether a target may be overwritten}}
-    P3[Matching is plus a narradin generated stamp]
-    P4[Matching is alone]
-    I2 --> P3
-    I2 --> P4
-    C4(CON Makes the stamp a co equal authority alongside is)
-    C5(CON Tells the author the file is generated then refuses to treat it as generated)
-    P3 --> C4
-    P3 --> C5
-    A5(PRO One property one rule consistent with every other exclusion)
-    P4 --> A5
-    D2([DECIDED is alone the stamp is provenance only])
-    P4 ==> D2
-    I3{{Is there versioning of compiled output}}
-    P5[Timestamped versions accumulate]
-    P6[None use git]
-    I3 --> P5
-    I3 --> P6
-    C6(CON Generated artifacts nobody asked for)
-    C7(CON A generated file kept as a backup is a backup done wrong)
-    P5 --> C6
-    P5 --> C7
-    A6(PRO git already answers tags branches and restore)
-    P6 --> A6
-    D3([DECIDED no versioning git is deferred but is the answer])
-    P6 ==> D3
+    subgraph S2["I2: What decides whether a target may be overwritten"]
+        I2{{What decides whether a target may be overwritten}}
+        P2a[Matching is plus a narradin generated stamp]
+        P2b[Matching is alone]
+        I2 --> P2a
+        I2 --> P2b
+        C2a(CON Makes the stamp a co equal authority alongside is)
+        C2b(CON Tells the author the file is generated then refuses to treat it as generated)
+        P2a --> C2a
+        P2a --> C2b
+        A2a(PRO One property one rule consistent with every other exclusion)
+        P2b --> A2a
+        D2([DECIDED is alone the stamp is provenance only])
+        P2b ==> D2
+    end
+    subgraph S3["I3: Is there versioning of compiled output"]
+        I3{{Is there versioning of compiled output}}
+        P3a[Timestamped versions accumulate]
+        P3b[None use git]
+        I3 --> P3a
+        I3 --> P3b
+        C3a(CON Generated artifacts nobody asked for)
+        C3b(CON A generated file kept as a backup is a backup done wrong)
+        P3a --> C3a
+        P3a --> C3b
+        A3a(PRO git already answers tags branches and restore)
+        P3b --> A3a
+        D3([DECIDED no versioning git is deferred but is the answer])
+        P3b ==> D3
+    end
 ```
 
 ---

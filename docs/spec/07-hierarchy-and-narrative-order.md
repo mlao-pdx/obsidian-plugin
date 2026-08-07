@@ -157,65 +157,76 @@ A consumer skipping `research` companions filters on `companionType`; order is u
 
 ## B.3 Narrative Ordering
 
+**Chain:** I1 index property count → I2 clash resolution order → I3 lexicographic vs
+natural sort → I4 folder note emission.
+
 ```mermaid
-flowchart TD
-    I1{{How many index properties}}
-    P1[One narrative index]
-    P2[Two folder index and sort index]
-    I1 --> P1
-    I1 --> P2
-    A1(PRO Simpler for the author)
-    C1(CON NN drag and drop owns sort index and renumbers it wholesale)
-    C2(CON A drifted folder note gets its value rewritten to 1000)
-    P1 --> A1
-    P1 --> C1
-    P1 --> C2
-    A2(PRO Folder order becomes immune to NN renumbering)
-    C3(CON Two properties is uglier)
-    P2 --> A2
-    P2 --> C3
-    A3(PRO Beats building our own drag and drop UX)
-    P2 --> A3
-    D1([DECIDED two properties])
-    P2 ==> D1
-    I2{{Clash resolution order}}
-    P3[ctime then alphabetical then hash]
-    P4[Alphabetical then ctime no hash]
-    I2 --> P3
-    I2 --> P4
-    C4(CON ctime is invisible metadata the author cannot reason about)
-    C5(CON A hash produces effectively random order)
-    P3 --> C4
-    P3 --> C5
-    A4(PRO Alphabetical is visible and matches OS behaviour)
-    P4 --> A4
-    D2([DECIDED alphabetical then ctime])
-    P4 ==> D2
+flowchart LR
+    subgraph S1["I1: How many index properties"]
+        I1{{How many index properties}}
+        P1[One narrative index]
+        P2[Two folder index and sort index]
+        I1 --> P1
+        I1 --> P2
+        A1(PRO Simpler for the author)
+        C1(CON NN drag and drop owns sort index and renumbers it wholesale)
+        C2(CON A drifted folder note gets its value rewritten to 1000)
+        P1 --> A1
+        P1 --> C1
+        P1 --> C2
+        A2(PRO Folder order becomes immune to NN renumbering)
+        C3(CON Two properties is uglier)
+        P2 --> A2
+        P2 --> C3
+        A3(PRO Beats building our own drag and drop UX)
+        P2 --> A3
+        D1([DECIDED two properties])
+        P2 ==> D1
+    end
+    subgraph S2["I2: Clash resolution order"]
+        I2{{Clash resolution order}}
+        P2a[ctime then alphabetical then hash]
+        P2b[Alphabetical then ctime no hash]
+        I2 --> P2a
+        I2 --> P2b
+        C2a(CON ctime is invisible metadata the author cannot reason about)
+        C2b(CON A hash produces effectively random order)
+        P2a --> C2a
+        P2a --> C2b
+        A2a(PRO Alphabetical is visible and matches OS behaviour)
+        P2b --> A2a
+        D2([DECIDED alphabetical then ctime])
+        P2b ==> D2
+    end
     D2 -.-> I3
-    I3{{Lexicographic or natural sort}}
-    P5[Lexicographic]
-    P6[Natural with numeric collation]
-    I3 --> P5
-    I3 --> P6
-    C6(CON Chapter 10 would sort before Chapter 2)
-    C7(CON Compiled order would contradict the file explorer)
-    P5 --> C6
-    P5 --> C7
-    A5(PRO Matches Obsidian file explorer exactly)
-    P6 --> A5
-    D3([DECIDED natural sort on the fully qualified name])
-    P6 ==> D3
-    I4{{Are folder notes emitted during traversal}}
-    P7[Skipped as pure structure]
-    P8[Yielded first on entering the folder]
-    I4 --> P7
-    I4 --> P8
-    C8(CON The author chose to write it so it is content)
-    A6(PRO A folder note is a dashboard and may carry title matter)
-    P7 --> C8
-    P8 --> A6
-    D4([DECIDED yielded first])
-    P8 ==> D4
+    subgraph S3["I3: Lexicographic or natural sort"]
+        I3{{Lexicographic or natural sort}}
+        P3a[Lexicographic]
+        P3b[Natural with numeric collation]
+        I3 --> P3a
+        I3 --> P3b
+        C3a(CON Chapter 10 would sort before Chapter 2)
+        C3b(CON Compiled order would contradict the file explorer)
+        P3a --> C3a
+        P3a --> C3b
+        A3a(PRO Matches Obsidian file explorer exactly)
+        P3b --> A3a
+        D3([DECIDED natural sort on the fully qualified name])
+        P3b ==> D3
+    end
+    subgraph S4["I4: Are folder notes emitted during traversal"]
+        I4{{Are folder notes emitted during traversal}}
+        P4a[Skipped as pure structure]
+        P4b[Yielded first on entering the folder]
+        I4 --> P4a
+        I4 --> P4b
+        C4a(CON The author chose to write it so it is content)
+        A4a(PRO A folder note is a dashboard and may carry title matter)
+        P4a --> C4a
+        P4b --> A4a
+        D4([DECIDED yielded first])
+        P4b ==> D4
+    end
 ```
 
 **The consequence nobody predicted.** NN only writes `sort_index` where custom sort has

@@ -236,57 +236,68 @@ requirement is that every view presents identically. `[OPEN Q-16d]`
 
 ## B.9 POV as a Positional Value
 
+**Chain:** I1 POV positional model → I2 mid-scene shift handling → I3 positional
+resolution unit → I4 companion-order consequence.
+
 ```mermaid
-flowchart TD
-    I1{{Can POV change within a scene}}
-    P1[No one POV per note]
-    P2[Yes positional overrides]
-    I1 --> P1
-    I1 --> P2
-    C1(CON Omniscient narration shifts constantly)
-    C2(CON Rashomon style scenes are legitimate)
-    P1 --> C1
-    P1 --> C2
-    A1(PRO A note property is simply the value in force at line one)
-    A2(PRO Outtakes get their POV capture free as a Position query)
-    P2 --> A1
-    P2 --> A2
-    D1([DECIDED POV and settings are positional with a frontmatter head])
-    P2 ==> D1
+flowchart LR
+    subgraph S1["I1: Can POV change within a scene"]
+        I1{{Can POV change within a scene}}
+        P1[No one POV per note]
+        P2[Yes positional overrides]
+        I1 --> P1
+        I1 --> P2
+        C1(CON Omniscient narration shifts constantly)
+        C2(CON Rashomon style scenes are legitimate)
+        P1 --> C1
+        P1 --> C2
+        A1(PRO A note property is simply the value in force at line one)
+        A2(PRO Outtakes get their POV capture free as a Position query)
+        P2 --> A1
+        P2 --> A2
+        D1([DECIDED POV and settings are positional with a frontmatter head])
+        P2 ==> D1
+    end
     D1 -.-> I2
-    I2{{Is a mid scene POV shift an error}}
-    P3[Flag as head hopping]
-    P4[Count and report never judge]
-    I2 --> P3
-    I2 --> P4
-    C3(CON Indistinguishable from deliberate omniscient narration)
-    C4(CON Would nag an omniscient writer on every scene)
-    P3 --> C3
-    P3 --> C4
-    A3(PRO Frame it as a question are these one scene or several)
-    A4(PRO Advisory threshold surfaces extremes only)
-    P4 --> A3
-    P4 --> A4
-    D2([DECIDED Rashomon report counts and asks dismissible per note])
-    P4 ==> D2
+    subgraph S2["I2: Is a mid scene POV shift an error"]
+        I2{{Is a mid scene POV shift an error}}
+        P2a[Flag as head hopping]
+        P2b[Count and report never judge]
+        I2 --> P2a
+        I2 --> P2b
+        C2a(CON Indistinguishable from deliberate omniscient narration)
+        C2b(CON Would nag an omniscient writer on every scene)
+        P2a --> C2a
+        P2a --> C2b
+        A2a(PRO Frame it as a question are these one scene or several)
+        A2b(PRO Advisory threshold surfaces extremes only)
+        P2b --> A2a
+        P2b --> A2b
+        D2([DECIDED Rashomon report counts and asks dismissible per note])
+        P2b ==> D2
+    end
     D1 -.-> I3
-    I3{{Across what unit does a positional value resolve}}
-    P5[Per file]
-    P6[Across the host group]
-    I3 --> P5
-    I3 --> P6
-    C5(CON POV in host frontmatter would not reach the prose companion)
-    C6(CON The one place POV matters would have none)
-    P5 --> C5
-    P5 --> C6
-    A5(PRO Follows the Content Sequence which every other consumer already uses)
-    P6 --> A5
-    D3([DECIDED resolve across the host group in Content Sequence order])
-    P6 ==> D3
+    subgraph S3["I3: Across what unit does a positional value resolve"]
+        I3{{Across what unit does a positional value resolve}}
+        P3a[Per file]
+        P3b[Across the host group]
+        I3 --> P3a
+        I3 --> P3b
+        C3a(CON POV in host frontmatter would not reach the prose companion)
+        C3b(CON The one place POV matters would have none)
+        P3a --> C3a
+        P3a --> C3b
+        A3a(PRO Follows the Content Sequence which every other consumer already uses)
+        P3b --> A3a
+        D3([DECIDED resolve across the host group in Content Sequence order])
+        P3b ==> D3
+    end
     D3 -.-> I4
-    I4{{Consequence}}
-    D4([Companion type order is now semantically load bearing not just presentational])
-    I4 --> D4
+    subgraph S4["I4: Consequence"]
+        I4{{Consequence}}
+        D4([Companion type order is now semantically load bearing not just presentational])
+        I4 --> D4
+    end
 ```
 
 ---

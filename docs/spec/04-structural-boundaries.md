@@ -98,41 +98,47 @@ Realm folder. Templates may live inside or outside a Realm at the author's discr
 
 ## B.1 Boundary Identity
 
+**Chain:** I1 boundary identity → I2 why keep names in sync.
+
 ```mermaid
 flowchart TD
-    I1{{What makes a folder a structural boundary}}
-    P1[A name matched folder note carrying is]
-    P2[Any note carrying a folder level is]
-    I1 --> P1
-    I1 --> P2
-    C1(CON Creates two authorities filename and is)
-    C2(CON Renaming the folder breaks the Realm)
-    P1 --> C1
-    P1 --> C2
-    A1(PRO Keeps is as the single authority)
-    A2(PRO Realm survives folder and note renames)
-    C3(CON A stray is inside a Characters folder makes it a boundary)
-    P2 --> A1
-    P2 --> A2
-    P2 --> C3
-    D1([DECIDED boundary is defined by is alone])
-    P2 ==> D1
-    M1(MITIGATION mismatch modal fires when the is is added)
-    C3 --> M1
+    subgraph S1["I1: What makes a folder a structural boundary"]
+        I1{{What makes a folder a structural boundary}}
+        P1[A name matched folder note carrying is]
+        P2[Any note carrying a folder level is]
+        I1 --> P1
+        I1 --> P2
+        C1(CON Creates two authorities filename and is)
+        C2(CON Renaming the folder breaks the Realm)
+        P1 --> C1
+        P1 --> C2
+        A1(PRO Keeps is as the single authority)
+        A2(PRO Realm survives folder and note renames)
+        C3(CON A stray is inside a Characters folder makes it a boundary)
+        P2 --> A1
+        P2 --> A2
+        P2 --> C3
+        D1([DECIDED boundary is defined by is alone])
+        P2 ==> D1
+        M1(MITIGATION mismatch modal fires when the is is added)
+        C3 --> M1
+    end
     D1 -.-> I2
-    I2{{Then why keep folder and note names in sync at all}}
-    P3[Cosmetic tidiness only]
-    P4[Required for correctness]
-    I2 --> P3
-    I2 --> P4
-    A3(PRO Notebook Navigator ignores sort index on a name matched folder note)
-    A4(PRO Once names drift NN rewrites that value into the 1000 range)
-    P4 --> A3
-    P4 --> A4
-    D2([DECIDED cosmetic but strongly recommended])
-    P3 ==> D2
-    D3([DECIDED folder position ignores sort index entirely])
-    A4 ==> D3
+    subgraph S2["I2: Then why keep folder and note names in sync at all"]
+        I2{{Then why keep folder and note names in sync at all}}
+        P2a[Cosmetic tidiness only]
+        P2b[Required for correctness]
+        I2 --> P2a
+        I2 --> P2b
+        A2a(PRO Notebook Navigator ignores sort index on a name matched folder note)
+        A2b(PRO Once names drift NN rewrites that value into the 1000 range)
+        P2b --> A2a
+        P2b --> A2b
+        D2a([DECIDED cosmetic but strongly recommended])
+        P2a ==> D2a
+        D2b([DECIDED folder position ignores sort index entirely])
+        A2b ==> D2b
+    end
 ```
 
 **Why sync stayed cosmetic.** The NN hazard is real but it attacks _ordering_, not

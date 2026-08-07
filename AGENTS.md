@@ -98,3 +98,5 @@ Follow Obsidian's Developer Policies and Plugin Guidelines. In particular:
 - Functional specification (the "what" and "why" of Narradin's design,
   including architecture-boundary rationale to consult when writing/
   reviewing lint rules): `docs/spec/README.md`.
+- Creating or revising a spec Decision Record (IBIS diagrams under
+  `docs/spec/`): load the `spec-decision-records` skill.

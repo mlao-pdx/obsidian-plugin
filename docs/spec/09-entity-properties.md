@@ -275,73 +275,84 @@ is a query over `PropertyProvider` joined to `MentionProvider` (§12.5).
 
 ## B.6 Entity Property Grammar
 
+**Chain:** I1 prose syntax → I2 first key segment → I3 system-concept addressing → I4
+modifier meaning.
+
 ```mermaid
-flowchart TD
-    I1{{What syntax for narrative metadata in prose}}
-    P1[Dataview inline fields]
-    P2[Custom brace syntax]
-    I1 --> P1
-    I1 --> P2
-    C1(CON Pollutes global Dataview queries)
-    C2(CON Cedes control of rendering)
-    P1 --> C1
-    P1 --> C2
-    A1(PRO Full control of collapse and reveal behaviour)
-    A2(PRO Braces essentially never occur in prose)
-    P2 --> A1
-    P2 --> A2
-    D1([DECIDED custom brace syntax])
-    P2 ==> D1
-    I2{{What occupies the first key segment}}
-    P3[A field type such as setup with the entity as context]
-    P4[The subject entity with everything else as context]
-    I2 --> P3
-    I2 --> P4
-    C3(CON Requires a wikilink pointer to pair a setup with its payoff)
-    C4(CON Needs three case anchor dispatch and heading range scanning)
-    C5(CON Thread identity is a bare string with no note behind it)
-    P3 --> C3
-    P3 --> C4
-    P3 --> C5
-    A3(PRO A progression becomes the default reading not a special construct)
-    A4(PRO Setups and payoffs collapse into a view over the same records)
-    A5(PRO Pairing becomes grouping by entity)
-    C6(CON A subjectless field such as setup alone cannot be expressed)
-    P4 --> A3
-    P4 --> A4
-    P4 --> A5
-    P4 --> C6
-    M1(MITIGATION if a thread is worth tracking it is worth a Plot note)
-    C6 --> M1
-    D2([DECIDED subject first])
-    P4 ==> D2
+flowchart LR
+    subgraph S1["I1: What syntax for narrative metadata in prose"]
+        I1{{What syntax for narrative metadata in prose}}
+        P1[Dataview inline fields]
+        P2[Custom brace syntax]
+        I1 --> P1
+        I1 --> P2
+        C1(CON Pollutes global Dataview queries)
+        C2(CON Cedes control of rendering)
+        P1 --> C1
+        P1 --> C2
+        A1(PRO Full control of collapse and reveal behaviour)
+        A2(PRO Braces essentially never occur in prose)
+        P2 --> A1
+        P2 --> A2
+        D1([DECIDED custom brace syntax])
+        P2 ==> D1
+    end
+    subgraph S2["I2: What occupies the first key segment"]
+        I2{{What occupies the first key segment}}
+        P2a[A field type such as setup with the entity as context]
+        P2b[The subject entity with everything else as context]
+        I2 --> P2a
+        I2 --> P2b
+        C2a(CON Requires a wikilink pointer to pair a setup with its payoff)
+        C2b(CON Needs three case anchor dispatch and heading range scanning)
+        C2c(CON Thread identity is a bare string with no note behind it)
+        P2a --> C2a
+        P2a --> C2b
+        P2a --> C2c
+        A2a(PRO A progression becomes the default reading not a special construct)
+        A2b(PRO Setups and payoffs collapse into a view over the same records)
+        A2c(PRO Pairing becomes grouping by entity)
+        C2d(CON A subjectless field such as setup alone cannot be expressed)
+        P2b --> A2a
+        P2b --> A2b
+        P2b --> A2c
+        P2b --> C2d
+        M2a(MITIGATION if a thread is worth tracking it is worth a Plot note)
+        C2d --> M2a
+        D2([DECIDED subject first])
+        P2b ==> D2
+    end
     D2 -.-> I3
-    I3{{How are Narradin system concepts addressed without shadowing entity names}}
-    P5[Reserved words such as outtake]
-    P6[Empty subject]
-    P7[Lozenge prefix]
-    I3 --> P5
-    I3 --> P6
-    I3 --> P7
-    C7(CON Reintroduces the type namespace that subject first just removed)
-    C8(CON Cannot distinguish an outtake pointer from any other hidden link)
-    P5 --> C7
-    P6 --> C8
-    A6(PRO Permanently collision free so new system concepts cost nothing)
-    A7(PRO Deliberately untypeable which is the whole point)
-    P7 --> A6
-    P7 --> A7
-    D3([DECIDED lozenge prefix Narradin writes them authors do not])
-    P7 ==> D3
-    I4{{What do the modifiers mean}}
-    P8[Visibility only]
-    P9[Whether the value is manuscript or metadata]
-    I4 --> P8
-    I4 --> P9
-    A8(PRO An arc audit needs to distinguish written from planned from removed)
-    P9 --> A8
-    D4([DECIDED plus is manuscript tilde is a note to self minus is invisible])
-    P9 ==> D4
+    subgraph S3["I3: How are Narradin system concepts addressed without shadowing entity names"]
+        I3{{How are Narradin system concepts addressed without shadowing entity names}}
+        P3a[Reserved words such as outtake]
+        P3b[Empty subject]
+        P3c[Lozenge prefix]
+        I3 --> P3a
+        I3 --> P3b
+        I3 --> P3c
+        C3a(CON Reintroduces the type namespace that subject first just removed)
+        C3b(CON Cannot distinguish an outtake pointer from any other hidden link)
+        P3a --> C3a
+        P3b --> C3b
+        A3a(PRO Permanently collision free so new system concepts cost nothing)
+        A3b(PRO Deliberately untypeable which is the whole point)
+        P3c --> A3a
+        P3c --> A3b
+        D3([DECIDED lozenge prefix Narradin writes them authors do not])
+        P3c ==> D3
+    end
+    subgraph S4["I4: What do the modifiers mean"]
+        I4{{What do the modifiers mean}}
+        P4a[Visibility only]
+        P4b[Whether the value is manuscript or metadata]
+        I4 --> P4a
+        I4 --> P4b
+        A4a(PRO An arc audit needs to distinguish written from planned from removed)
+        P4b --> A4a
+        D4([DECIDED plus is manuscript tilde is a note to self minus is invisible])
+        P4b ==> D4
+    end
 ```
 
 **The single highest-leverage decision in the project.** Making segment 0 the subject

@@ -206,95 +206,109 @@ something a port interface can or should enforce.
 
 ## B.7 Architecture
 
+**Chain:** I1 write-loop suppression, I2 frontmatter-only properties, I3 provider
+consolidation, and I4 per-vault storage all feed I5, the ports-vs-direct-dependency
+question.
+
 ```mermaid
-flowchart TD
-    I1{{How are Narradin own writes kept out of its own pipeline}}
-    P1[A narradin id frontmatter sentinel]
-    P2[An in memory pending write set]
-    I1 --> P1
-    I1 --> P2
-    C1(CON Renames carry no content to stamp)
-    C2(CON Renames are the only loop forming case so it misses the one that matters)
-    C3(CON Non markdown files have no frontmatter)
-    C4(CON vault modify races metadataCache so the read may be stale)
-    C5(CON Mutates a synced property on every touch)
-    P1 --> C1
-    P1 --> C2
-    P1 --> C3
-    P1 --> C4
-    P1 --> C5
-    A1(PRO Registers the old to new pair so the rename loop is covered)
-    A2(PRO Works for binaries)
-    A3(PRO Ingest is idempotent so a miss costs CPU not correctness)
-    P2 --> A1
-    P2 --> A2
-    P2 --> A3
-    D1([DECIDED pending write set with a short expiry])
-    P2 ==> D1
-    E1(EXCEPTION the alias pass is not suppressed because it mutates entity names in properties)
-    D1 --> E1
-    I2{{Can Note Properties be read from the note body}}
-    P3[Yes for consistency with Embrace the Chaos]
-    P4[No frontmatter only]
-    I2 --> P3
-    I2 --> P4
-    C6(CON Layer 3 would depend on Layer 4 to build the tree which is circular)
-    C7(CON Boot would need every file read before any hierarchy existed)
-    C8(CON Notebook Navigator could not see it)
-    P3 --> C6
-    P3 --> C7
-    P3 --> C8
-    A4(PRO metadataCache delivers all frontmatter at boot from Obsidian own index)
-    P4 --> A4
-    D2([DECIDED Note Properties are frontmatter only])
-    P4 ==> D2
-    M1(MITIGATION a body is is not blocked it is reported by health)
-    D2 --> M1
-    I3{{Do progressions and setups need their own providers}}
-    P5[Yes one provider each]
-    P6[No both are views over property plus mention]
-    I3 --> P5
-    I3 --> P6
-    C9(CON Parallel stacks over identical substrate)
-    P5 --> C9
-    A5(PRO Cast lists health and outtakes reuse the same index)
-    P6 --> A5
-    D3([DECIDED no ProgressionProvider and no SetupPayoffProvider])
-    P6 ==> D3
-    I4{{Are Realms physically separated in storage}}
-    P7[One database per Realm]
-    P8[One database per vault with a realmId column]
-    I4 --> P7
-    I4 --> P8
-    C10(CON A nested Realm puts a row in two Realms at once)
-    C11(CON Moving a Realm would force a database migration)
-    C12(CON Cross Realm operations become N database fan outs)
-    P7 --> C10
-    P7 --> C11
-    P7 --> C12
-    A6(PRO Blast radius becomes one indexed predicate testable in one place)
-    P8 --> A6
-    D4([DECIDED one database per vault])
-    P8 ==> D4
-    I5{{Should Layer 3 and Worker domain algorithms depend on Obsidian and Dexie directly or through ports}}
+flowchart LR
+    subgraph S1["I1: How are Narradin own writes kept out of its own pipeline"]
+        I1{{How are Narradin own writes kept out of its own pipeline}}
+        P1[A narradin id frontmatter sentinel]
+        P2[An in memory pending write set]
+        I1 --> P1
+        I1 --> P2
+        C1(CON Renames carry no content to stamp)
+        C2(CON Renames are the only loop forming case so it misses the one that matters)
+        C3(CON Non markdown files have no frontmatter)
+        C4(CON vault modify races metadataCache so the read may be stale)
+        C5(CON Mutates a synced property on every touch)
+        P1 --> C1
+        P1 --> C2
+        P1 --> C3
+        P1 --> C4
+        P1 --> C5
+        A1(PRO Registers the old to new pair so the rename loop is covered)
+        A2(PRO Works for binaries)
+        A3(PRO Ingest is idempotent so a miss costs CPU not correctness)
+        P2 --> A1
+        P2 --> A2
+        P2 --> A3
+        D1([DECIDED pending write set with a short expiry])
+        P2 ==> D1
+        E1(EXCEPTION the alias pass is not suppressed because it mutates entity names in properties)
+        D1 --> E1
+    end
+    subgraph S2["I2: Can Note Properties be read from the note body"]
+        I2{{Can Note Properties be read from the note body}}
+        P2a[Yes for consistency with Embrace the Chaos]
+        P2b[No frontmatter only]
+        I2 --> P2a
+        I2 --> P2b
+        C2a(CON Layer 3 would depend on Layer 4 to build the tree which is circular)
+        C2b(CON Boot would need every file read before any hierarchy existed)
+        C2c(CON Notebook Navigator could not see it)
+        P2a --> C2a
+        P2a --> C2b
+        P2a --> C2c
+        A2a(PRO metadataCache delivers all frontmatter at boot from Obsidian own index)
+        P2b --> A2a
+        D2([DECIDED Note Properties are frontmatter only])
+        P2b ==> D2
+        M2a(MITIGATION a body is is not blocked it is reported by health)
+        D2 --> M2a
+    end
+    subgraph S3["I3: Do progressions and setups need their own providers"]
+        I3{{Do progressions and setups need their own providers}}
+        P3a[Yes one provider each]
+        P3b[No both are views over property plus mention]
+        I3 --> P3a
+        I3 --> P3b
+        C3a(CON Parallel stacks over identical substrate)
+        P3a --> C3a
+        A3a(PRO Cast lists health and outtakes reuse the same index)
+        P3b --> A3a
+        D3([DECIDED no ProgressionProvider and no SetupPayoffProvider])
+        P3b ==> D3
+    end
+    subgraph S4["I4: Are Realms physically separated in storage"]
+        I4{{Are Realms physically separated in storage}}
+        P4a[One database per Realm]
+        P4b[One database per vault with a realmId column]
+        I4 --> P4a
+        I4 --> P4b
+        C4a(CON A nested Realm puts a row in two Realms at once)
+        C4b(CON Moving a Realm would force a database migration)
+        C4c(CON Cross Realm operations become N database fan outs)
+        P4a --> C4a
+        P4a --> C4b
+        P4a --> C4c
+        A4a(PRO Blast radius becomes one indexed predicate testable in one place)
+        P4b --> A4a
+        D4([DECIDED one database per vault])
+        P4b ==> D4
+    end
+    subgraph S5["I5: Should Layer 3 and Worker domain algorithms depend on Obsidian and Dexie directly or through ports"]
+        I5{{Should Layer 3 and Worker domain algorithms depend on Obsidian and Dexie directly or through ports}}
+        P5a[Depend on metadataCache vault and Dexie directly]
+        P5b[Depend on port interfaces implemented by adapters]
+        I5 --> P5a
+        I5 --> P5b
+        C5a(CON No seam for unit testing boundary resolution traversal and scope algorithms)
+        C5b(CON Retrofitting the seam after Layers 1 to 4 are built is a much larger refactor)
+        P5a --> C5a
+        P5a --> C5b
+        A5a(PRO Core algorithms become testable against an in memory fake)
+        A5b(PRO Core stays swappable from Obsidian and Dexie later)
+        A5c(PRO Enforces the already decided core purity rule)
+        P5b --> A5a
+        P5b --> A5b
+        P5b --> A5c
+        D5([DECIDED four ports MetadataPort FileContentPort PersistencePort VaultWritePort])
+        P5b ==> D5
+    end
     D2 -.-> I5
     D4 -.-> I5
-    P9[Depend on metadataCache vault and Dexie directly]
-    P10[Depend on port interfaces implemented by adapters]
-    I5 --> P9
-    I5 --> P10
-    C13(CON No seam for unit testing boundary resolution traversal and scope algorithms)
-    C14(CON Retrofitting the seam after Layers 1 to 4 are built is a much larger refactor)
-    P9 --> C13
-    P9 --> C14
-    A7(PRO Core algorithms become testable against an in memory fake)
-    A8(PRO Core stays swappable from Obsidian and Dexie later)
-    A9(PRO Enforces the already decided core purity rule)
-    P10 --> A7
-    P10 --> A8
-    P10 --> A9
-    D5([DECIDED four ports MetadataPort FileContentPort PersistencePort VaultWritePort])
-    P10 ==> D5
 ```
 
 _D5 does not supersede D2 or D4 — the dotted arrows mark that this issue reconsiders their
