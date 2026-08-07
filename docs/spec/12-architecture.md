@@ -21,7 +21,8 @@ flowchart TB
   `metadataCache.on('changed' | 'resolved')`.
 - `metadataCache.on('changed')` guarantees frontmatter and links are current; it does
   **not** guarantee body text is ready for regex parsing. Entity Property parsing is
-  therefore driven from `vault.on('modify')`.
+  therefore driven from `vault.on('modify')`, and the parser reads the raw body through
+  `FileContentPort` (§12.9) rather than calling `vault.read`/`vault.cachedRead` directly.
 - All raw events pass through a debounce/throttle queue so event storms never lock the main
   thread.
 - **Boot-time delta sync:** on the initial `resolved`, reconcile vault state against the
@@ -69,8 +70,9 @@ vault** — a write here would re-enter Layer 1 and loop.
 - **Identity.** A surrogate auto-incrementing `++id` per tracked file. Providers store `id`
   only, never paths.
 - **Path map.** Sole owner of `id ↔ path`, exposed synchronously.
-- **Note Properties.** Read directly from `metadataCache` — structural metadata must be
-  available before Layer 4 exists (§9.1).
+- **Note Properties.** Read through `MetadataPort` (§12.9) — structural metadata must be
+  available before Layer 4 exists (§9.1). The port's adapter wraps `metadataCache`; the
+  frontmatter-only decision itself is unchanged (Appendix B §B.7 D2).
 - **Boundary resolution.** Resolves the hierarchy **top-down from each Realm root** (§4.2),
   including Island detection.
 - **Content Sequence.** Owns the traversal result (§7.5) and patches it on structural
@@ -80,7 +82,10 @@ vault** — a write here would re-enter Layer 1 and loop.
 - **Database.** One per vault: `narradin-{app.appId}-v{schemaVersion}`. Every row carries an
   indexed `realmId`; blast-radius enforcement is a mandatory predicate on every action
   query. Realms are **not** physically separated — nested Realms put a row in two at once,
-  Realm moves would force migrations, and cross-Realm operations would fan out.
+  Realm moves would force migrations, and cross-Realm operations would fan out. This schema
+  is the adapter behind `PersistencePort` (§12.9); the boundary-resolution, traversal, and
+  scope-map algorithms above depend on that interface, not on Dexie directly — the
+  database choice itself is unchanged (Appendix B §B.7 D4).
 - **Disposable.** The database is a cache. Rebuildable, never authoritative.
 - **Synchronous API** (shape, not contract): `getPath(id)`, `getId(path)`,
   `getContentSequence(scopeId?)`, `getScopeOwner(entityId)`,
@@ -148,7 +153,10 @@ Current members: `narradin__fka`, `narradin__generated`, `narradin__ack`.
 - **Consumers (UI):** CodeMirror view plugins, sidebars, codeblock views, the alias modal.
   They subscribe to Providers and render. They never parse files or query the database.
 - **Workers:** the Alias Application Engine and the Compiler. A Worker reads a plan from a
-  Provider, resolves paths through the Indexer, and performs batched writes.
+  Provider, resolves paths through the Indexer, and performs batched writes. The plan
+  computation (what to rewrite, where to compile to) is pure core logic that takes/returns
+  data; only the write execution goes through `VaultWritePort` (§12.9) — the adapter-side
+  orchestration that calls the port to carry out the plan.
 
 ### 12.8 Pacing
 
@@ -159,6 +167,26 @@ Current members: `narradin__fka`, `narradin__generated`, `narradin__ack`.
 | Hierarchy rebuild (coalesced, subtree-scoped) | ~250 ms                                                                                                             |
 | Boot delta-sync                               | chunked, yielding to main thread                                                                                    |
 | Alias application pass                        | 15-minute floor; window-blur trigger; **immediate** on collision, on scope change with pending `fka`, or on command |
+
+### 12.9 Ports and the Core Boundary
+
+`src/core/**` never imports `obsidian` or `dexie` at runtime. Four ports (`src/ports/`)
+form the seam between the domain algorithms above and the technologies that back them:
+
+| Port              | Wraps                                                                | Depended on by                                                                             |
+| ----------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `MetadataPort`    | `metadataCache`                                                      | Layer 3 boundary resolution (§4.2) and Note Property reads (§12.3)                         |
+| `FileContentPort` | `vault.read` / `vault.cachedRead`                                    | Layer 1/2 Entity Property parsing (§12.1)                                                  |
+| `PersistencePort` | the Dexie/IndexedDB schema (§12.3 "Database")                        | Layer 3's boundary-resolution, Content Sequence traversal (§7.5), and scope-map algorithms |
+| `VaultWritePort`  | `vault.modify` / `rename` / `delete` + the pending-write set (§12.1) | Workers' write-execution step (§12.7), not their plan computation                          |
+
+None of this reverses an existing decision. `MetadataPort`'s adapter still reads
+frontmatter via `metadataCache` (Appendix B §B.7 D2), and `PersistencePort`'s adapter is
+still the one-database-per-vault Dexie schema (Appendix B §B.7 D4). The port only adds a
+seam so the domain algorithms that consume those choices — boundary resolution,
+traversal, scope resolution, plan computation — can be unit-tested against an in-memory
+fake and stay decoupled from Obsidian/storage technology, per the core-purity rule (see
+`src/core/README.md`, `src/ports/README.md`).
 
 ---
 
@@ -236,6 +264,31 @@ flowchart TD
     P8 --> A6
     D4([DECIDED one database per vault])
     P8 ==> D4
+    I5{{Should Layer 3 and Worker domain algorithms depend on Obsidian and Dexie directly or through ports}}
+    D2 -.-> I5
+    D4 -.-> I5
+    P9[Depend on metadataCache vault and Dexie directly]
+    P10[Depend on port interfaces implemented by adapters]
+    I5 --> P9
+    I5 --> P10
+    C13(CON No seam for unit testing boundary resolution traversal and scope algorithms)
+    C14(CON Retrofitting the seam after Layers 1 to 4 are built is a much larger refactor)
+    P9 --> C13
+    P9 --> C14
+    A7(PRO Core algorithms become testable against an in memory fake)
+    A8(PRO Core stays swappable from Obsidian and Dexie later)
+    A9(PRO Enforces the already decided core purity rule)
+    P10 --> A7
+    P10 --> A8
+    P10 --> A9
+    D5([DECIDED four ports MetadataPort FileContentPort PersistencePort VaultWritePort])
+    P10 ==> D5
 ```
+
+_D5 does not supersede D2 or D4 — the dotted arrows mark that this issue reconsiders their
+consequences, not their outcomes. Note Properties are still read from `metadataCache`
+(D2) and the cache is still one Dexie database per vault (D4); `MetadataPort` and
+`PersistencePort` are adapters over those same unchanged choices. The only new thing is
+the seam between them and the core algorithms that consume them (§12.9)._
 
 ---

@@ -23,7 +23,8 @@
     "noEmit": true,
 
     "paths": {
-      "@core/*": ["./src/core/*"]
+      "@core/*": ["./src/core/*"],
+      "@ports/*": ["./src/ports/*"]
     }
   },
   "include": ["src/**/*.ts", "tests/**/*.ts", "types/**/*.d.ts"]

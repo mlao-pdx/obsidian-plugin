@@ -75,9 +75,11 @@ const context = await esbuild.context({
 		__DEV__: JSON.stringify(!prod),
 	},
 	alias: {
-		// Mirrors the `@core/*` path alias in tsconfig.json so `@core/*`
-		// imports resolve at bundle time, not just at type-check time.
+		// Mirrors the `@core/*` and `@ports/*` path aliases in tsconfig.json
+		// so these imports resolve at bundle time, not just at type-check
+		// time.
 		'@core': path.resolve(process.cwd(), 'src/core'),
+		'@ports': path.resolve(process.cwd(), 'src/ports'),
 	},
 	treeShaking: true,
 	outfile: 'main.js',
