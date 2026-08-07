@@ -1,18 +1,18 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import MyPlugin from './main';
+import NarradinPlugin from './main';
 
-export interface MyPluginSettings {
-	mySetting: string;
+export interface NarradinPluginSettings {
+	exampleSetting: string;
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default',
+export const DEFAULT_SETTINGS: NarradinPluginSettings = {
+	exampleSetting: 'default',
 };
 
-export class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+export class NarradinSettingTab extends PluginSettingTab {
+	plugin: NarradinPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: NarradinPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -28,9 +28,9 @@ export class SampleSettingTab extends PluginSettingTab {
 			.addText((text) =>
 				text
 					.setPlaceholder('Enter your secret')
-					.setValue(this.plugin.settings.mySetting)
+					.setValue(this.plugin.settings.exampleSetting)
 					.onChange(async (value) => {
-						this.plugin.settings.mySetting = value;
+						this.plugin.settings.exampleSetting = value;
 						await this.plugin.saveSettings();
 					}),
 			);
