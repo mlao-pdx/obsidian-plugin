@@ -81,8 +81,10 @@ Follow Obsidian's Developer Policies and Plugin Guidelines. In particular:
 - Work directly on `main`. Do not create or switch to feature branches.
 - All commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/)
   (`type(scope): subject`, e.g. `fix: correct macOS gitignore patterns`).
-- Do not commit, push, amend commits, or otherwise alter Git history
-  without explicit user approval for that specific change.
+- Do not commit, push, amend commits, or otherwise alter Git history without
+  the user initiating it. When completed changes form a logical unit of work
+  that feels like a good commit point, suggest committing rather than asking
+  for approval and waiting.
 - Never use shell commit-message commands or `git commit -m "..."`. Compose
   commit messages through the normal interactive commit flow so they can
   be reviewed before finalizing.
