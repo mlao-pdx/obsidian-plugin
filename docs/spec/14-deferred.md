@@ -27,7 +27,6 @@ overwrites. Sketch:
 - **Structural health reports** — scoped `narradin` codeblocks reporting on Islands,
   orphans, mismatches, unresolved property subjects with fuzzy candidates, `is` found in
   body properties, near-miss contexts, and the Rashomon report.
-- **CriticMarkup / revisions** — waiting on Commentator's official release.
 - **Alias deduplication UI** — enforcing unique aliases with guided renaming.
 - **Fuzzy entity matching** — edit-distance tolerance, opt-in, surfaced as suggestions.
 - **CMOS normalisation** on prose compiles.

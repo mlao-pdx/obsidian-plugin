@@ -25,8 +25,8 @@ icons (Book › Chapter › Scene), each linking to its level — a bare scene l
 structural bearing in a long list.
 
 **Rows show all three modifiers**, distinguished by a registered icon and filterable in the
-codeblock. This is the point of the view: `+` is written, `~` is planned but exists only as
-a note, `-` marks removed content. A report showing only `+` would tell an author their arc
+codeblock. This is the point of the view: default is written, `~` is planned but exists only as
+a note, `!` marks internal/removed content. A report showing only the default modifier would tell an author their arc
 is complete when half of it is still notes.
 
 **Naming Collisions** — where two entities share a name, a row appearing in both reports
@@ -103,8 +103,8 @@ settings: ["[[The Watch House]]", "[[The Shades]]"]
 Positional override — a system marker taking effect from its Position onward:
 
 ```
-{~◊pov=[[Colon]]~}
-{~◊settings=[[The Shades]]~}
+{~◊pov=[[Colon]]}
+{~◊settings=[[The Shades]]}
 ```
 
 `settings` remains a **list** in both forms. Its plurality is no longer about sequence —
@@ -163,14 +163,14 @@ treatment as Naming Collisions.
 A system marker whose subject is `◊outtake`:
 
 ```
-{-◊outtake+Vimes+The Watch House=[[Outtakes#^blk-1a2b]]-}
+{!◊outtake+Vimes+The Watch House=[[Outtakes#^blk-1a2b]]}
 ```
 
 - Hidden, cursor-skipped. A pointer, not content.
 - **Contexts are captured values, not literal words** — the POV and settings _as they were
   at the moment of the cut_, resolved at the marker's Position (§16.4). On restore, Narradin
   compares them against the current values and warns if the scene has moved on.
-- Contexts naming entities generate `entity-property-context` mentions, but the `-` modifier
+- Contexts naming entities generate `entity-property-context` mentions, but the `!` modifier
   excludes them from appearance evidence (§12.5).
 - The `is` lives on the **collection note**, not the marker.
 - The collection note must be inside the same Realm — Realm blast radius.

@@ -71,7 +71,7 @@ vault** — a write here would re-enter Layer 1 and loop.
   only, never paths.
 - **Path map.** Sole owner of `id ↔ path`, exposed synchronously.
 - **Note Properties.** Read through `MetadataPort` (§12.9) — structural metadata must be
-  available before Layer 4 exists (§9.1). The port's adapter wraps `metadataCache`; the
+  available before Layer 4 exists (§9.0). The port's adapter wraps `metadataCache`; the
   frontmatter-only decision itself is unchanged (Appendix B §B.7 D2).
 - **Boundary resolution.** Resolves the hierarchy **top-down from each Realm root** (§4.2),
   including Island detection.
@@ -117,17 +117,17 @@ data, and plain-text scanning. Every mention is tagged by evidence kind:
 | `wikilink-destination` / `wikilink-display` | body links                                           |
 | `plain-text`                                | normalised basename/alias occurrence (toggleable)    |
 
-`entity-property-context` is what lets `{+Frodo+Samwise+argument=…}` count as _evidence
+`entity-property-context` is what lets `{Frodo+Samwise+argument=…}` count as _evidence
 Samwise appears_ while the progression still belongs to Frodo.
 
-**Mentions from `-` properties are excluded from appearance evidence** — cast lists,
+**Mentions from `!` properties are excluded from appearance evidence** — cast lists,
 first-appearance ordering, presence counts — because removed content is not an appearance.
 They are retained in Progressions, where the gap is exactly what the author needs to see.
 
 **Indexes stale strings too** — every value in every `fka` thread — so the alias pass can
 locate the text it must fix.
 
-**Matching reuses the Application Engine's machinery**: normalisation (§9.5), superset
+**Matching reuses the Application Engine's machinery**: normalisation (§9.2), superset
 masking, word boundaries. One code path finds a name and rewrites it, so discovery and
 replacement can never disagree.
 

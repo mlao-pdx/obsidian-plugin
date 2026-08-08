@@ -16,15 +16,16 @@ the file that holds it:
 | B.3  | Narrative Ordering               | `07-hierarchy-and-narrative-order.md`      |
 | B.4  | Where the Alias Ledger Lives     | `10-the-alias-manager.md`                  |
 | B.5  | Alias Replacement Safety         | `10-the-alias-manager.md`                  |
-| B.6  | Entity Property Grammar          | `09-entity-properties.md`                  |
+| B.6  | Inline Property Grammar          | `09-entity-properties.md`                  |
 | B.7  | Architecture                     | `12-architecture.md`                       |
 | B.8  | Compiler Output                  | `08-the-compiler.md`                       |
 | B.9  | POV as a Positional Value        | `16-views.md`                              |
 | B.10 | Load-Bearing Chains              | `appendix-b-notation-and-cross-cutting.md` |
 | B.11 | Open Issues                      | `15-open-questions.md`                     |
 | B.12 | Maintaining This Appendix        | `appendix-b-notation-and-cross-cutting.md` |
+| B.13 | Editorial Property Grammar       | `09-entity-properties.md`                  |
 
-**Next available number: B.13**
+**Next available number: B.14**
 
 ## Reading the graphs
 

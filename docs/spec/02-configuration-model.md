@@ -39,9 +39,9 @@ Both the `is` value and the suffix are user-changeable, for i18n among other rea
 suffix `__manuscript`.
 
 **Context Vocabulary** — per Realm. Each entry: normalised context, display label, Icon
-Registry key, and `role: opens | closes | none` (§9.7).
+Registry key, and `role: opens | closes | none` (§9.6).
 
-**Reserved Keys** — never interpreted as an Entity Property subject (§9.1). Configurable,
+**Reserved Keys** — never interpreted as an Entity Property subject (§9.0). Configurable,
 so an author whose character is genuinely named "Tags" can reclaim it.
 
 **Alias Manager** — Source Note `is` values, selectable **only from already-configured

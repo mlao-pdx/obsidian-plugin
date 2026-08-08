@@ -156,9 +156,12 @@ re-scanned. Defence in depth against a failure of the collision check.
   because entity names genuinely live everywhere.
 - **One sacred fence:** the _destination_ half of a wikilink, `[[Destination|`. Never
   touched. The _display_ half is fair game, as is all plain text.
-- **Entity Property keys are rewritten.** `+` and `=` are non-word characters, so word
-  boundaries handle `{+Frodo+midpoint=…}` → `{+Bilbo+midpoint=…}` correctly. Without this,
-  a rename would silently detach every progression.
+- **Entity Property keys are rewritten.** `+`, `=`, and `|` are non-word characters, so
+  word boundaries handle `{Frodo+midpoint=…}` → `{Bilbo+midpoint=…}` correctly. `|` matters
+  just as much as `+` and `=` here — multi-key Entity Properties
+  (`{Frodo|Bilbo+midpoint=…}`) and Editorial Property turns (`{#Alice+...}`) both lean on
+  it as a rewrite boundary. Without this, a rename would silently detach every
+  progression.
 - Renames may break surrounding syntax (`John Hancock` → `J |-|` inside a table). Accepted.
 
 **Smart Replace — substring protection**

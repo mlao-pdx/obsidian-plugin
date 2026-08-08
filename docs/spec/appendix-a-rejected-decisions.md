@@ -15,9 +15,8 @@ Recorded so they are not relitigated.
 | Subject-less properties (`{setup=…}`)               | If a thread is worth tracking it is worth a Plot note. Enforces Absolute Opt-In.                            |
 | Making `◊` easy to type                             | The namespace guarantee _is_ the inaccessibility.                                                           |
 | Wikilink-based setup→payoff pairing                 | Unnecessary once the thread is an entity; anchor dispatch and heading-range scanning disappear with it.     |
-| Fractional ordinals for companion order             | A four-part Position tuple has no precision ceiling and nothing to re-derive.                               |
+| Fractional ordinals for companion order             | `companionRank` is a plain integer with no precision ceiling and nothing to re-derive.                      |
 | Minimum alias length guard                          | Shared with the Mention Index, so a character named `Ed` would have had no progressions at all.             |
-| Building CriticMarkup / track-changes               | Commentator does it well; waiting costs nothing.                                                            |
 | `narradin_id` content sentinel for loop suppression | Renames carry no content; non-markdown files have no frontmatter; `vault.modify` races `metadataCache`.     |
 | Exclusive Narradin ownership of `aliases`           | Would delete hand edits made in external editors.                                                           |
 | Note Properties readable from the body              | Layer 3 would depend on Layer 4 to build the tree. Circular.                                                |

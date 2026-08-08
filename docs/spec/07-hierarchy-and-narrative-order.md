@@ -145,9 +145,17 @@ interface ContentSequenceEntry {
     role: 'narrative-folder' | 'narrative-leaf' | 'companion';
     companionType?: string;     // e.g. 'prose', 'research'
     hostId?: number;
-    position: Position;         // sequenceIndex + companionRank populated
+    sequenceIndex: number;      // this entry's index in the Content Sequence
+    companionRank: number;      // 0 for the host note; 1..n for its companions in configured type order
 }
 ```
+
+**These two fields, not the Inline Property `Position`.** `sequenceIndex` and
+`companionRank` are host-level facts about _this entry_ — the note or Companion itself —
+not the narrower per-property `(line, offset, blockId)` tuple defined in §9.7. A
+consumer composing a full cross-note sort key (Progressions, mention ordering) joins an
+Inline Property's `(line, offset)` with its host's `(sequenceIndex, companionRank)` here,
+via `fileId`/`id` — the two never travelled together in one struct (Appendix B §B.6).
 
 A consumer skipping `research` companions filters on `companionType`; order is untouched.
 
