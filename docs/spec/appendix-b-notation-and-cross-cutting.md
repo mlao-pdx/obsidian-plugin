@@ -40,6 +40,10 @@ the file that holds it:
 
 A dotted arrow means _this decision forced that issue to be reopened_.
 
+When a graph node's text says "scope" generically, it refers to the term formally defined
+in §5.5 Scope Taxonomy — check context (blast radius, watermark, replacement, etc.) to
+determine which named scope applies.
+
 **Before overturning any decision, check §B.10.** Several are load-bearing for
 decisions taken later, and reversing one in isolation reintroduces a problem that was
 solved elsewhere.
@@ -52,7 +56,7 @@ Which decisions cannot be reversed alone.
 
 ```mermaid
 flowchart LR
-    A1[Alias blast radius is the Source Note scope]
+    A1[Alias blast radius is the Source Note Local Scope]
     A2[Global watermark is incoherent]
     A3[Watermark must be per note]
     A4[fka lives in the vault]

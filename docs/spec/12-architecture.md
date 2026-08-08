@@ -55,12 +55,12 @@ Translates file events into semantic Narradin events, hiding the fact that an `i
 indistinguishable from a create or delete. Maintains a registry of paths currently valid to
 Narradin.
 
-| Condition                           | Emitted                                                             |
-| ----------------------------------- | ------------------------------------------------------------------- |
-| gains a valid `is`, not in registry | `EntityCreated`                                                     |
-| loses its `is`, was in registry     | `EntityDeleted` — even though the file still exists                 |
-| in registry, renamed                | `EntityRenamed` — payload carries the **pre-change resolved scope** |
-| in registry, content changed        | `EntityUpdated`                                                     |
+| Condition                           | Emitted                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------- |
+| gains a valid `is`, not in registry | `EntityCreated`                                                           |
+| loses its `is`, was in registry     | `EntityDeleted` — even though the file still exists                       |
+| in registry, renamed                | `EntityRenamed` — payload carries the **pre-change resolved Local Scope** |
+| in registry, content changed        | `EntityUpdated`                                                           |
 
 ### 12.3 Canonical Index
 
@@ -77,8 +77,10 @@ vault** — a write here would re-enter Event Ingestion and loop.
   including Island detection.
 - **Content Sequence.** Owns the traversal result (§7.5) and patches it on structural
   change. No Provider or Consumer ever walks the tree.
-- **Scope map.** For every Player, Plot, and Companion, caches the resolving Narrative
-  entity. Emits scope deltas, which drive alias flushes (§10.7).
+- **Local Scope map.** For every Player, Plot, and Companion, caches the resolving
+  Narrative entity (§5.5). Emits scope deltas, which drive alias flushes (§10.7).
+- **Indexed Scope.** Every Narradin Scope note gets a Canonical Index row (§5.5); Orphan
+  Scope notes get one too, with `realmId: null` (§4.5).
 - **Database.** One per vault: `narradin-{app.appId}-v{schemaVersion}`. Every row carries an
   indexed `realmId`; blast-radius enforcement is a mandatory predicate on every action
   query. A headless-orphan Island (§4.5) never acquires a `realmId` and therefore never
@@ -91,7 +93,12 @@ vault** — a write here would re-enter Event Ingestion and loop.
 - **Disposable.** The database is a cache. Rebuildable, never authoritative.
 - **Synchronous API** (shape, not contract): `getPath(id)`, `getId(path)`,
   `getContentSequence(scopeId?)`, `getScopeOwner(entityId)`,
-  `getEntitiesInScope(narrativeId, category?)`, `getPreChangeScope(id)`.
+  `getEntitiesInScope(narrativeId, category?)`, `getPreChangeScope(id)`. Method names are
+  unchanged code-facing identifiers (out of scope for this docs pass); in prose, each
+  resolves or returns a **Local Scope** (§5.5) — `getScopeOwner` returns the Narrative
+  entity a note's Local Scope resolves to, `getEntitiesInScope` returns the entities whose
+  Local Scope matches, and `getPreChangeScope` returns the pre-change resolved Local Scope
+  described in §12.2.
 - **Emits** `HierarchyUpdated`, `ScopeUpdated`.
 
 ### 12.4 Content Projection
@@ -101,7 +108,7 @@ vault** — a write here would re-enter Event Ingestion and loop.
 
 - **Own their in-memory caches.** Consumers must never cache, or multiple simultaneous views
   desynchronise.
-- **Store `id`s only.** Rehydrate to paths and scope through the Indexer.
+- **Store `id`s only.** Rehydrate to paths and Local Scope through the Indexer.
 - **Fetch what the event didn't carry.**
 - **Emit domain-shaped events**, firing only when data those consumers care about changed.
 
@@ -171,13 +178,13 @@ Current members: `narradin__fka`, `narradin__generated`, `narradin__ack`.
 
 ### 12.8 Pacing
 
-| Signal                                        | Target                                                                                                              |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Entity Property parse after last keystroke    | 300–500 ms                                                                                                          |
-| Metadata / structural change                  | ~150 ms                                                                                                             |
-| Hierarchy rebuild (coalesced, subtree-scoped) | ~250 ms                                                                                                             |
-| Boot delta-sync                               | chunked, yielding to main thread                                                                                    |
-| Alias application pass                        | 15-minute floor; window-blur trigger; **immediate** on collision, on scope change with pending `fka`, or on command |
+| Signal                                        | Target                                                                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Entity Property parse after last keystroke    | 300–500 ms                                                                                                                |
+| Metadata / structural change                  | ~150 ms                                                                                                                   |
+| Hierarchy rebuild (coalesced, subtree-scoped) | ~250 ms                                                                                                                   |
+| Boot delta-sync                               | chunked, yielding to main thread                                                                                          |
+| Alias application pass                        | 15-minute floor; window-blur trigger; **immediate** on collision, on Local Scope change with pending `fka`, or on command |
 
 ### 12.9 Ports and the Core Boundary
 

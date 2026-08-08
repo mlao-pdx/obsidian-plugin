@@ -54,10 +54,10 @@ is a configured Generated type. Every consequence follows from that one property
 exclusion from Entity Property indexing, from the Mention Index, from the alias target
 set, from use as compile input, and eligibility for silent overwrite.
 
-**`narradin__generated` is provenance, not a gate.** It records source scope, compile
-timestamp, and requested types. It is written on every compile, read by reports and by a
-future recompile command, and is authoritative for nothing. Treating it as a precondition
-would create a second source of truth alongside `is`.
+**`narradin__generated` is provenance, not a gate.** It records the source note's Local
+Scope, compile timestamp, and requested types. It is written on every compile, read by
+reports and by a future recompile command, and is authoritative for nothing. Treating it
+as a precondition would create a second source of truth alongside `is`.
 
 Without these exclusions, every `{...}` property in a compiled manuscript is counted
 twice and a later alias rename silently mutates the export while its sources drift.

@@ -28,7 +28,7 @@ architecture-boundary rules (e.g. `core_purity_rule` from `12-architecture.md` /
 - [Part 2: Configuration Model](02-configuration-model.md) — Ontology, hierarchy, and other user-facing settings, plus how configuration changes propagate.
 - [Part 3: Ontology](03-ontology.md) — The `is`-value categories every note is classified into.
 - [Part 4: Structural Boundaries](04-structural-boundaries.md) — Boundary definition, resolution, naming, nesting, islands, and self-containment rules. Includes Decision Record B.1 Boundary Identity.
-- [Part 5: Scope](05-scope.md) — Containment, inheritance, the Membrane Rule, and scope mutability. Includes Decision Record B.2 Scope, Islands, and the Membrane.
+- [Part 5: Scope](05-scope.md) — Containment, inheritance, the Membrane Rule, and scope mutability, and the named Scope Taxonomy (§5.5). Includes Decision Record B.2 Scope, Islands, and the Membrane.
 - [Part 6: Companions](06-companions.md) — Companion file contract, rename sync, ordering, and non-Markdown/generated companions.
 - [Part 7: Hierarchy and Narrative Order](07-hierarchy-and-narrative-order.md) — The Steel Thread, traversal, directory ordering, acceptance fixtures, and content sequence. Includes Decision Record B.3 Narrative Ordering.
 - [Part 8: The Compiler](08-the-compiler.md) — Core compiler behaviour, rendering fidelity, output targets, and codeblock evaluation during compile. Includes Decision Record B.8 Compiler Output.

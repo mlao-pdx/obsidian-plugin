@@ -125,9 +125,9 @@ Expected: `Realm.md`, `Series.md`, `Scene C`, `Book B.md`, `Scene E`, `Scene F`,
 
 ### 7.5 Content Sequence
 
-The **Content Sequence** of a scope is the narrative sequence (§7.3) with each note
-followed immediately by its Companions in configured companion type order. Islands and
-Generated Companions are excluded.
+The **Content Sequence** of a Narrative Traversal Scope (§5.5) is the narrative sequence
+(§7.3) with each note followed immediately by its Companions in configured companion
+type order. Islands and Generated Companions are excluded.
 
 Defined once, consumed by the Compiler (Part 8), every view (Part 16), positional value
 resolution (§16.4), and health reporting. There is no second traversal anywhere.

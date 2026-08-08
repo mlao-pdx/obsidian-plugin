@@ -3,7 +3,7 @@
 ## Part 16: Views
 
 Every view is a query over `PropertyProvider` joined to `MentionProvider`, ordered by
-Position, bounded by scope. None is a subsystem.
+Position, bounded by Local Scope. None is a subsystem.
 
 ### 16.1 Progressions
 
@@ -11,13 +11,14 @@ The unfiltered chronological view of one entity's Entity Properties.
 
 1. **Subject** — explicit `target` in the codeblock; else the hosting note's entity; else,
    if the host is a Companion, its `for` host. None → error state.
-2. **Report scope** — the hosting note's scope (§5.2).
-3. **Two-axis membership** (§8.4): the subject must be scope-eligible — its scope an
-   ancestor of, equal to, or a descendant of the report scope — and rows are drawn **only
-   from within the report scope**. A block on a Book folder note targeting a Series-scoped
-   character shows that Book's rows, not the Series'.
-4. Query `MentionProvider` for `entity-property-subject` mentions of the subject in scope.
-   Hydrate with records.
+2. **Report anchor** — the hosting note's Local Scope (§5.2, §5.5).
+3. **Two-axis membership** (§8.4): the subject must be Local-Scope-eligible — its Local
+   Scope an ancestor of, equal to, or a descendant of the hosting note's Local Scope —
+   and rows are drawn **only from within** the hosting note's **Narrative Traversal
+   Scope**. A block on a Book folder note targeting a Series-scoped character shows that
+   Book's rows, not the Series'.
+4. Query `MentionProvider` for `entity-property-subject` mentions of the subject within
+   the hosting note's Narrative Traversal Scope. Hydrate with records.
 5. Sort by Position.
 
 **Columns:** Breadcrumb · Progression · Context. The breadcrumb is a chain of hierarchy
@@ -66,11 +67,11 @@ twelve candidates is one row plus a count, not twelve rows.
 
 **Sections:**
 
-| Section       | Meaning                           |
-| ------------- | --------------------------------- |
-| **Contained** | both ends inside the report scope |
-| **Incoming**  | closes here, opens outside        |
-| **Outgoing**  | opens here, closes outside        |
+| Section       | Meaning                                                       |
+| ------------- | ------------------------------------------------------------- |
+| **Contained** | both ends inside the hosting note's Narrative Traversal Scope |
+| **Incoming**  | closes here, opens outside                                    |
+| **Outgoing**  | opens here, closes outside                                    |
 
 **Status indicators:**
 
@@ -85,8 +86,9 @@ ends of a thread are Realm-bounded by construction.
 
 ### 16.3 Cast Lists
 
-`MentionProvider` projected to distinct entities within a scope, per §8.4's two-axis rule.
-Ordering and appendix as specified there.
+`MentionProvider` projected to distinct entities within the hosting note's Narrative
+Traversal Scope, per §8.4's two-axis rule: Local Scope for eligibility, Narrative
+Traversal Scope for inclusion. Ordering and appendix as specified there.
 
 ### 16.4 POV and Settings — Positional Values
 
@@ -127,8 +129,8 @@ precedence rule; it is simply the head of the timeline.
 > dashboard's frontmatter and writes prose in `Scene 12__prose.md` gets POV throughout.
 > Resolving per file would leave the prose — the one place POV actually matters — with none.
 
-A group with no declaration anywhere has no POV. It is never inherited from a parent scope
-or a preceding note: POV is a property of prose, not of hierarchy.
+A group with no declaration anywhere has no POV. It is never inherited from a parent
+Local Scope or a preceding note: POV is a property of prose, not of hierarchy.
 
 **Declarations reach forward only.** An override in `__prose` (rank 2) does not affect
 `__beats` (rank 1), which precedes it. Read in isolation the POV can appear to move

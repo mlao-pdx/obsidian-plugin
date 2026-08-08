@@ -151,7 +151,8 @@ nothing for `!`).
 Ordered, first match wins:
 
 1. **Player or Plot entity** — segment 0, normalised per Key Normalisation below, matched
-   against basenames, aliases, and stale `narradin__fka` values in scope. Matching
+   against basenames, aliases, and stale `narradin__fka` values within the property
+   host's **Reference-Valid Scope** (§5.5) — its own resolved Realm Scope. Matching
    through the alias layer means a report does not blank out between a rename and its
    propagation.
 2. **System concept** — segment 0 begins with `◊` (U+25CA LOZENGE) and the remainder
@@ -161,6 +162,16 @@ Ordered, first match wins:
 
 **Unresolved is never dropped.** Silence is how a typo hides for six months while an arc
 quietly loses three beats.
+
+**Reference-Valid Scope.** An Inline Property may name or target any entity within the
+host note's own **Reference-Valid Scope** (§5.5) — its resolved Realm Scope (§5.2/§5.3).
+Cross-Realm references are invalid: subject resolution never reaches outside the host's
+Realm, matching the Membrane Rule's "inside never looks out." This is deliberately
+**wider** than the Alias Manager's rewrite blast radius, which is bounded by Local Scope,
+not Realm Scope (§10.6) — an Inline Property may validly target an entity the Alias
+Manager would never rewrite on that note's behalf. Not a contradiction: reference
+validity and rewrite reach are different operations with different, independently
+justified boundaries — a deliberate Half-Fix on the rewrite side, not on this one.
 
 #### The Lozenge Namespace
 

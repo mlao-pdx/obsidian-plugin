@@ -8,10 +8,11 @@ text.
 ### 8.1 Core Behaviour
 
 - **Trigger** — a command from a note carrying a `compile` property. That note's location
-  determines the scope: run it from a Book folder note, compile that Book; from a Series
-  folder note, compile the Series.
-- **Interaction** — a modal confirming compile types, resolved scope, and estimated word
-  count. **No editor involvement.**
+  determines the compiling note's **Local Scope**, which anchors both the **Compile
+  Scope** (§5.5) and the eligibility test in §8.4: run it from a Book folder note,
+  compile that Book; from a Series folder note, compile the Series.
+- **Interaction** — a modal confirming compile types, resolved **Compile Scope**, and
+  estimated word count. **No editor involvement.**
 - **Output** — a **Generated Companion** containing hard text. Never an embed, never a
   codeblock, never an insertion at the cursor. Written in the background; a notice with a
   click-to-open action fires on completion.
@@ -64,22 +65,25 @@ does not destroy a file that never declared itself generated.
 > file becomes invisible to Narradin while still holding the path. The notice says so;
 > renaming resolves it.
 
-Every compile is written to `_narradin/log.md` with target, scope, and types.
+Every compile is written to `_narradin/log.md` with target, Compile Scope, and types.
 
 ### 8.4 Player and Plot Compilation
 
-Players and Plot notes have a scope but no position in the narrative spine, so they are
-never emitted inline. A Player/Plot compile is **attached by the author**: the `compile`
-property is placed on a Companion of a folder-level Narrative note, and that note's scope
-becomes the compile scope.
+Players and Plot notes have a Local Scope but no position in the narrative spine, so they
+are never emitted inline. A Player/Plot compile is **attached by the author**: the
+`compile` property is placed on a Companion of a folder-level Narrative note, and that
+note's Local Scope anchors the operation, producing this compile's **Compile Scope**
+(§5.5: Narrative Traversal Scope entities and their Companions filtered to the `compile`
+array's current `is` value).
 
 **Membership is two-axis.** Scope alone is insufficient — it describes where an entity
 _may range_, not where it _appears_.
 
-1. **Eligibility — scope.** The entity's scope must be an ancestor of, equal to, or a
-   descendant of the compile scope. A sibling Book's bit players are excluded.
-2. **Inclusion — evidence.** At least one resolved reference _within_ the compile scope,
-   drawn from the Mention Index (§12.5).
+1. **Eligibility — Local Scope.** The entity's Local Scope must be an ancestor of, equal
+   to, or a descendant of **the compiling note's Local Scope**. A sibling Book's bit
+   players are excluded.
+2. **Inclusion — evidence.** At least one resolved reference _within_ the compiling
+   note's **Narrative Traversal Scope**, drawn from the Mention Index (§12.5).
 
 | Case, compiling at Book 2                        | Eligible     | Included            |
 | ------------------------------------------------ | ------------ | ------------------- |
@@ -90,9 +94,9 @@ _may range_, not where it _appears_.
 | Entity mentioned only inside an Island           | —            | ✗ never             |
 | Entity mentioned only in `{-…}` removed content  | —            | ✗ not an appearance |
 
-**Ordering** — grouped by the entity's scope level, Realm down to the lowest folder
-level; within each group, ordered by first appearance in the compile scope, with a link
-to the first-appearance prose. `[OPEN Q-3]`
+**Ordering** — grouped by the entity's Local Scope level, Realm down to the lowest folder
+level; within each group, ordered by first appearance in the Narrative Traversal Scope,
+with a link to the first-appearance prose. `[OPEN Q-3]`
 
 **Appendix** — eligible-but-absent entities are listed in a trailing _"no appearances
 found in scope"_ section, default on. It is the single most useful signal in a cast list:
@@ -105,8 +109,8 @@ companion simply appears in the compiled manuscript.
 
 Two requirements follow:
 
-- **Cycle detection** — a block whose scope contains its own host must be detected and
-  reported, not recursed.
+- **Cycle detection** — a block whose Local Scope contains its own host must be detected
+  and reported, not recursed.
 - **Markdown projection** — every view renders to plain markdown as well as DOM. Compile
   output is hard text and cannot carry inline SVG; icons degrade to their registered
   labels.

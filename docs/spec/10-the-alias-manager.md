@@ -13,8 +13,8 @@ by `is` value, selectable only from already-defined `is` values, defaulting to a
 and Plot concepts.
 
 **Targets** — _not separately configured._ A target is **any note with a valid Narradin
-`is` value**, within the Source Note's scope, excluding Generated Companions, Islands, and
-`_narradin`.
+`is` value**, within the Source Note's **Local Scope** (§5.5), excluding Generated
+Companions, Islands, and `_narradin`.
 
 Source membership changes on: note creation, note deletion, an `is` change adding or
 removing membership, and settings changes. When a note _leaves_ the Source set, any pending
@@ -55,7 +55,7 @@ as a retirement.
 
 **No watermark.** Staleness is positional. Both `propagatedAt` and the former global
 `ledgerWatermark` are removed; the latter became incoherent the moment propagation was
-scope-bounded (§10.6).
+Local-Scope-bounded (§10.6).
 
 **Backlog.** Every value except the last, each paired **directly** with the last.
 `[A,B,C]` yields `[A→C]` and `[B→C]`. Stale values never chain through intermediates —
@@ -116,23 +116,25 @@ alias never meant "delete this name from my manuscript."
 
 A background worker. Executes each Source Note's backlog across its targets.
 
-**Blast radius** — the **Source Note's own narrative scope**, resolved by the Indexer. A
-Series-level character rewrites across that Series; a Chapter-scoped bit player rewrites
-that Chapter. Mentions outside scope are missed: a deliberate Half-Fix. Never wider than
-the containing Realm; Islands are never entered.
+**Blast radius** — the **Source Note's own Local Scope** (§5.5), resolved by the Indexer.
+A Series-level character rewrites across that Series; a Chapter-scoped bit player
+rewrites that Chapter (Local Scope = Chapter). Mentions outside Local Scope are missed: a
+deliberate Half-Fix — narrower than the entity's **Reference-Valid Scope** (§9's Subject
+Resolution, §5.5), which extends to the whole Realm. Never wider than the containing
+Realm; Islands are never entered.
 
-**Target discovery** — via the Mention Index (§12.5), not a scope-wide scan. The index is
-maintained against all claimed strings, _including stale `fka` values_, so the pass can
-locate what it needs to fix.
+**Target discovery** — via the Mention Index (§12.5), not a Local-Scope-wide scan. The
+index is maintained against all claimed strings, _including stale `fka` values_, so the
+pass can locate what it needs to fix.
 
-**Collision window** — a string is unavailable if, within an **overlapping scope**, it is
-either a current alias/basename of another Source Note **or appears anywhere in another
-Source Note's `fka` threads.** The second clause is unconditional and load-bearing: a
-recently retired string may still sit unpropagated in prose.
+**Collision window** — a string is unavailable if, within an **overlapping Local Scope**,
+it is either a current alias/basename of another Source Note **or appears anywhere in
+another Source Note's `fka` threads.** The second clause is unconditional and
+load-bearing: a recently retired string may still sit unpropagated in prose.
 
-Because scopes must overlap for a block to apply, same-named characters in sibling Books
-never collide — which reconciles the block with the Naming Collisions principle instead of
-contradicting it.
+Because Local Scopes must overlap for a block to apply, same-named characters in sibling
+Books never collide — which reconciles the block with the Naming Collisions principle
+instead of contradicting it.
 
 **Chaining cannot legally occur.** For `A: Vimes → Jimmy` and `B: Jimmy → Bob` to coexist,
 A must have taken "Jimmy" while B's was unpropagated — which the collision check forbids.
@@ -145,9 +147,9 @@ intact, logs, and is retryable.
 backlog pairs stale values directly to current.
 
 **Simultaneous replacement.** For each target, collect every applicable `(stale, current)`
-pair from every in-scope Source Note, compute all match spans against the **original**
-text, resolve overlaps by longest-match-wins, and rewrite in one pass. Output is never
-re-scanned. Defence in depth against a failure of the collision check.
+pair from every Source Note within Local Scope, compute all match spans against the
+**original** text, resolve overlaps by longest-match-wins, and rewrite in one pass.
+Output is never re-scanned. Defence in depth against a failure of the collision check.
 
 **Replacement rules**
 
@@ -168,10 +170,10 @@ re-scanned. Defence in depth against a failure of the collision check.
 
 **Smart Replace — substring protection**
 
-1. **Superset masking.** Query all active strings in scope that contain the target as a
-   substring — `Captain Vimes` when replacing `Vimes`. Record every span. Any occurrence of
-   the target inside a recorded span is **skipped**. `Commander Vimes` — not itself an
-   alias — is not protected and _is_ replaced.
+1. **Superset masking.** Query all active strings within Local Scope that contain the
+   target as a substring — `Captain Vimes` when replacing `Vimes`. Record every span. Any
+   occurrence of the target inside a recorded span is **skipped**. `Commander Vimes` —
+   not itself an alias — is not protected and _is_ replaced.
 2. **Word boundaries.** Word character = `\p{L}` ∪ `\p{N}` ∪ `\p{M}` ∪ `_`. `Vimes's` →
    `Jimmy's`; `MacVimes` and `Vimesy` are skipped; `Séverine` matches whole.
 3. **Apostrophe folding, search only.** `'` `'` `ʼ` are equivalent when locating; the
@@ -200,31 +202,34 @@ untouched and the case is written to the conflict log with context.
 
 ### 10.7 Scope Migration — Flush and Re-Validate
 
-Collision clearance is evaluated at entry against scopes _as they then are_. Scope is
-mutable (§5.4), so clearance is **not durable.** Two hazards follow from a scope change
-with pending `fka`:
+Collision clearance is evaluated at entry against Local Scopes _as they then are_. Local
+Scope is mutable (§5.4), so clearance is **not durable.** Two hazards follow from a Local
+Scope change with pending `fka`:
 
-1. **Ownership collision.** A's pending `Vimes → Jimmy` lands in a scope B already owns.
+1. **Ownership collision.** A's pending `Vimes → Jimmy` lands in a Local Scope B already
+   owns.
 2. **Retroactive over-reach.** Even with no collision, A's backlog now targets prose A
    never governed.
 
-**Primary mechanism — flush against the old scope.** A resolved-scope change on a Source
-Note with non-empty `fka` is an **immediate trigger**, bypassing the debounce floor exactly
-as a collision does. The pass runs against the **pre-change scope**, preserving intent.
+**Primary mechanism — flush against the old Local Scope.** A resolved-Local-Scope change
+on a Source Note with non-empty `fka` is an **immediate trigger**, bypassing the debounce
+floor exactly as a collision does. The pass runs against the **pre-change Local Scope**,
+preserving intent.
 
 Requirements this imposes:
 
-- `EntityRenamed` and `ScopeUpdated` payloads carry the **pre-change resolved scope**.
-- The trigger fires on the Indexer's resolved-scope delta, **not on rename alone** — adding
-  or deleting a folder note re-parents many notes without any of them moving.
+- `EntityRenamed` and `ScopeUpdated` payloads carry the **pre-change resolved Local
+  Scope**.
+- The trigger fires on the Indexer's resolved-Local-Scope delta, **not on rename alone**
+  — adding or deleting a folder note re-parents many notes without any of them moving.
 
 **Backstop — re-validate at pass time.** Immediately before executing, the pass re-runs the
-collision check against _current_ scopes. Any pair that now collides is skipped, left in
-`fka`, and written to the conflict report.
+collision check against _current_ Local Scopes. Any pair that now collides is skipped, left
+in `fka`, and written to the conflict report.
 
 **Residue, stated honestly.** If a flush fails, the Source Note's stale strings persist in
-its old scope while it lives in the new one. Not automatically recoverable. The conflict
-report names it.
+its old Local Scope while it lives in the new one. Not automatically recoverable. The
+conflict report names it.
 
 ### 10.8 Initialise / Rebuild Index
 
@@ -234,7 +239,7 @@ is truth.
 1. Clear the cached index.
 2. Enumerate Source Notes; read basename, `aliases`, and any `fka`.
 3. Register all claimed strings.
-4. On duplicate strings across notes **within overlapping scope**, apply
+4. On duplicate strings across notes **within overlapping Local Scope**, apply
    oldest-`ctime`-wins (documented deviation, §1.1); name both notes in the conflict log.
 5. Emit the Init advisory (§10.6).
 6. Write a summary to the conflict log.
@@ -275,7 +280,7 @@ flowchart LR
         I1{{How wide is an alias rename allowed to reach}}
         P1[Vault wide]
         P2[Bounded by the Realm]
-        P3[Bounded by the Source Note own scope]
+        P3[Bounded by the Source Note own Local Scope]
         I1 --> P1
         I1 --> P2
         I1 --> P3
@@ -287,13 +292,13 @@ flowchart LR
         P2 --> C2
         A2(PRO Same rule already used for progressions)
         A3(PRO Sibling Books stop colliding so collision blocking mostly evaporates)
-        C3(CON A bit player mentioned outside their scope is missed)
+        C3(CON A bit player mentioned outside their Local Scope is missed)
         P3 --> A2
         P3 --> A3
         P3 --> C3
         M1(MITIGATION accepted as a textbook Half Fix)
         C3 --> M1
-        D1([DECIDED bounded by the Source Note own scope])
+        D1([DECIDED bounded by the Source Note own Local Scope])
         P3 ==> D1
     end
     D1 -.-> I2
@@ -343,7 +348,7 @@ flowchart LR
         P4b[Rebuildable read cache]
         I4 --> P4a
         I4 --> P4b
-        A4a(PRO Superset masking needs a scope wide substring query)
+        A4a(PRO Superset masking needs a Local-Scope-wide substring query)
         A4b(PRO A lost index costs a rebuild never data)
         P4b --> A4a
         P4b --> A4b

@@ -16,4 +16,10 @@ Every note is classified by its `is` value into exactly one category:
 A note with no `is`, or an unrecognised `is`, does not exist for Narradin. Authors may
 scatter arbitrary notes anywhere without consequence.
 
+**Classification is not scope membership.** This list assigns each note a permanent
+ontology category; it says nothing about where that note's boundaries fall. A note keeps
+its Narrative classification even when a hierarchy break removes it from Narrative Scope
+— that is precisely what an Island (§4.5) is: still Narrative by `is`, no longer inside
+Narrative Scope. See the full named scope taxonomy at §5.5.
+
 ---

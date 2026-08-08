@@ -22,7 +22,7 @@ Recorded so they are not relitigated.
 | Note Properties readable from the body              | Canonical Index would depend on Content Projection to build the tree. Circular.                             |
 | Per-Realm physical database separation              | Nested Realms put a row in two at once; Realm moves would force migrations.                                 |
 | Logical reattachment of out-of-order boundaries     | Would require inventing a sort position the subtree does not physically have.                               |
-| Global `ledgerWatermark`                            | Incoherent once propagation was scope-bounded.                                                              |
+| Global `ledgerWatermark`                            | Incoherent once propagation was Local-Scope-bounded.                                                        |
 | Durable alias UUIDs                                 | Nothing outlives propagation; array position suffices.                                                      |
 | Compile insert-at-cursor                            | Editor lock-up on large compiles, and the output would be re-ingested and rewritten.                        |
 | Generated-file versioning and retention             | That is git's job.                                                                                          |
