@@ -67,7 +67,9 @@ which is precisely what makes arbitrary delay between passes safe.
 **Notes are keyed by the Indexer's `++id`.** No separate UUID.
 
 **Newly promoted Source Notes.** Any pre-existing `fka` is discarded; current basename and
-aliases become the anchor with no history.
+aliases become the anchor with no history. One promotion path is a Companion whose `is`
+changes to a tracked entity concept (§6.6) — the `__` → `_` rename and `for` removal
+happen there, not here.
 
 **Deletion.** `vault.on('delete')` fires after the file is gone, but the metadata provider
 already caches all frontmatter, so the last known `fka` is available and is written to the

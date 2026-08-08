@@ -304,7 +304,18 @@ _Unresolved:_
 
 - Modal with full thread (all speakers, timestamps, comments).
 - After text shown in prose, dimmed and boxed to indicate pending edit.
-- Accept/Reject buttons, Delete edit option.
+- Accept/Reject buttons, plus a Delete action.
+- **Delete on an unresolved edit is not itself a resolution.** It prompts the
+  user to choose ◊ACCEPTED or ◊REJECTED first. Choosing Cancel at that
+  prompt aborts the deletion entirely; the edit remains unresolved and
+  untouched.
+- Choosing a resolution at that prompt both resolves and deletes in one
+  step: the `{#...}` expression is removed from the source entirely,
+  leaving behind exactly the text that resolution would have rendered
+  (the after-value for ◊ACCEPTED, the before-value for ◊REJECTED) — with
+  no marker, no icon, no expandable thread. This differs from a plain
+  Accept/Reject (below), which keeps the collapsed thread and icon in
+  source for audit history.
 
 _After Accept:_
 

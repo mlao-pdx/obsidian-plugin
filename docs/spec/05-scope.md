@@ -46,7 +46,10 @@ series-scoped instantly.
 > Island, ever.
 
 A _legally_ nested Realm is not a sandbox — its contents are readable and reportable from
-the outer Realm. An _Island_ is fully sealed in both directions.
+the outer Realm. An _Island_ is fully sealed in both directions — including outward
+`realmId` lookup. An Island rooted in its own Realm folder note supplies that `realmId`
+from within; any other Island can never acquire one and is therefore a headless orphan,
+untracked by Narradin beyond the single structure-issues line naming it (§4.5).
 
 Writes need no separate rule: because alias propagation is bounded by the Source Note's
 own scope (§10.6), an outer-Realm entity can never write into a nested Realm — its

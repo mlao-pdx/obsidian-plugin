@@ -81,7 +81,9 @@ vault** — a write here would re-enter Event Ingestion and loop.
   entity. Emits scope deltas, which drive alias flushes (§10.7).
 - **Database.** One per vault: `narradin-{app.appId}-v{schemaVersion}`. Every row carries an
   indexed `realmId`; blast-radius enforcement is a mandatory predicate on every action
-  query. Realms are **not** physically separated — nested Realms put a row in two at once,
+  query. A headless-orphan Island (§4.5) never acquires a `realmId` and therefore never
+  becomes a row at all — it is absent from the index by construction, not filtered out of
+  it. Realms are **not** physically separated — nested Realms put a row in two at once,
   Realm moves would force migrations, and cross-Realm operations would fan out. This schema
   is the adapter behind `PersistencePort` (§12.9); the boundary-resolution, traversal, and
   scope-map algorithms above depend on that interface, not on Dexie directly — the
