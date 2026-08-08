@@ -85,7 +85,7 @@ Not optional.
 
 ### 10.4 Sources of Change
 
-**Modal (Layer 5).** Lists every current alias, each in a text field prefilled with its own
+**Modal (Application Layer).** Lists every current alias, each in a text field prefilled with its own
 value. Clear the field → **delete**. Change the value → **rename**. Leave it → no-op. The
 basename is never shown; to change it, rename the file natively.
 

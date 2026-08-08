@@ -7,15 +7,15 @@ never touching the ingest path or the UI layer.
 
 ```mermaid
 flowchart TB
-    L1[Layer 1 Event Catcher] --> L2[Layer 2 Event Transformer]
-    L2 --> L3[Layer 3 Indexer and Cache]
-    L3 --> L4[Layer 4 Content Providers]
-    L4 --> L5[Layer 5 Consumers]
+    L1[Event Ingestion] --> L2[Event Semantics]
+    L2 --> L3[Canonical Index]
+    L3 --> L4[Content Projection]
+    L4 --> L5[Application Layer]
     L4 --> W[Workers]
     W -.writes.-> L1
 ```
 
-### 12.1 Layer 1 — Event Catcher
+### 12.1 Event Ingestion
 
 - Hooks `vault.on('modify' | 'rename' | 'delete')` and
   `metadataCache.on('changed' | 'resolved')`.
@@ -49,7 +49,7 @@ no content to stamp, non-markdown files have no frontmatter, and `vault.modify` 
 `metadataCache`. `narradin__*` is retained for durable state — `fka`, `generated` — not for
 loop suppression._
 
-### 12.2 Layer 2 — Event Transformer
+### 12.2 Event Semantics
 
 Translates file events into semantic Narradin events, hiding the fact that an `is` change is
 indistinguishable from a create or delete. Maintains a registry of paths currently valid to
@@ -62,16 +62,16 @@ Narradin.
 | in registry, renamed                | `EntityRenamed` — payload carries the **pre-change resolved scope** |
 | in registry, content changed        | `EntityUpdated`                                                     |
 
-### 12.3 Layer 3 — Indexer & Cache
+### 12.3 Canonical Index
 
 Synchronous master state over a Dexie/IndexedDB cache. **Read-only with respect to the
-vault** — a write here would re-enter Layer 1 and loop.
+vault** — a write here would re-enter Event Ingestion and loop.
 
 - **Identity.** A surrogate auto-incrementing `++id` per tracked file. Providers store `id`
   only, never paths.
 - **Path map.** Sole owner of `id ↔ path`, exposed synchronously.
 - **Note Properties.** Read through `MetadataPort` (§12.9) — structural metadata must be
-  available before Layer 4 exists (§9.0). The port's adapter wraps `metadataCache`; the
+  available before Content Projection exists (§9.0). The port's adapter wraps `metadataCache`; the
   frontmatter-only decision itself is unchanged (Appendix B §B.7 D2).
 - **Boundary resolution.** Resolves the hierarchy **top-down from each Realm root** (§4.2),
   including Island detection.
@@ -92,7 +92,7 @@ vault** — a write here would re-enter Layer 1 and loop.
   `getEntitiesInScope(narrativeId, category?)`, `getPreChangeScope(id)`.
 - **Emits** `HierarchyUpdated`, `ScopeUpdated`.
 
-### 12.4 Layer 4 — Content Providers
+### 12.4 Content Projection
 
 `MetadataProvider`, `HierarchyProvider`, `PropertyProvider`, `MentionProvider`,
 `PlayerProvider`, `PlotProvider`, `CompanionProvider`, `AliasProvider`.
@@ -103,7 +103,16 @@ vault** — a write here would re-enter Layer 1 and loop.
 - **Fetch what the event didn't carry.**
 - **Emit domain-shaped events**, firing only when data those consumers care about changed.
 
-### 12.5 Layer 4 — Mention Index Provider
+A Provider may read from **multiple** lower-level sources (e.g. `PropertyProvider` reads
+both frontmatter via `MetadataPort` and body text via `FileContentPort`) and combine them
+into **one canonical in-memory record shape**, even though the underlying data or
+IndexedDB storage may be split by origin. Consumers only ever see the combined shape.
+For example, `PropertyProvider.getPropertiesForFile(fileId)` returns
+`EntityPropertyRecord[]` regardless of whether a given record originated from frontmatter
+or the note body — origin is a field on the record (§9.9's `origin: 'frontmatter' |
+'body'`), not a caller-visible split.
+
+### 12.5 Content Projection — Mention Index Provider
 
 `MentionProvider` is explicitly **derived** — a projection over `PropertyProvider`, link
 data, and plain-text scanning. Every mention is tagged by evidence kind:
@@ -148,7 +157,7 @@ touch them, at their own risk.
 
 Current members: `narradin__fka`, `narradin__generated`, `narradin__ack`.
 
-### 12.7 Layer 5 — Consumers and Workers
+### 12.7 Application Layer — Consumers and Workers
 
 - **Consumers (UI):** CodeMirror view plugins, sidebars, codeblock views, the alias modal.
   They subscribe to Providers and render. They never parse files or query the database.
@@ -173,12 +182,12 @@ Current members: `narradin__fka`, `narradin__generated`, `narradin__ack`.
 `src/core/**` never imports `obsidian` or `dexie` at runtime. Four ports (`src/ports/`)
 form the seam between the domain algorithms above and the technologies that back them:
 
-| Port              | Wraps                                                                | Depended on by                                                                             |
-| ----------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `MetadataPort`    | `metadataCache`                                                      | Layer 3 boundary resolution (§4.2) and Note Property reads (§12.3)                         |
-| `FileContentPort` | `vault.read` / `vault.cachedRead`                                    | Layer 1/2 Entity Property parsing (§12.1)                                                  |
-| `PersistencePort` | the Dexie/IndexedDB schema (§12.3 "Database")                        | Layer 3's boundary-resolution, Content Sequence traversal (§7.5), and scope-map algorithms |
-| `VaultWritePort`  | `vault.modify` / `rename` / `delete` + the pending-write set (§12.1) | Workers' write-execution step (§12.7), not their plan computation                          |
+| Port              | Wraps                                                                | Depended on by                                                                                     |
+| ----------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `MetadataPort`    | `metadataCache`                                                      | Canonical Index boundary resolution (§4.2) and Note Property reads (§12.3)                         |
+| `FileContentPort` | `vault.read` / `vault.cachedRead`                                    | Event Ingestion / Event Semantics Entity Property parsing (§12.1)                                  |
+| `PersistencePort` | the Dexie/IndexedDB schema (§12.3 "Database")                        | Canonical Index's boundary-resolution, Content Sequence traversal (§7.5), and scope-map algorithms |
+| `VaultWritePort`  | `vault.modify` / `rename` / `delete` + the pending-write set (§12.1) | Workers' write-execution step (§12.7), not their plan computation                                  |
 
 None of this reverses an existing decision. `MetadataPort`'s adapter still reads
 frontmatter via `metadataCache` (Appendix B §B.7 D2), and `PersistencePort`'s adapter is
@@ -194,11 +203,26 @@ adapter's job. `MetadataPort` reads are expected to stay synchronous and cheap b
 `MetadataPort` to become async. `FileContentPort` reads are inherently async
 (`vault.read` / `vault.cachedRead` already return Promises). `PersistencePort` and
 `VaultWritePort` adapters must not block the calling path — batch writes, use IndexedDB
-transactions appropriately, and never synchronously wait on I/O inside a call that Layer
-3 or a Worker expects to return quickly. The debounce/throttle/coalescing behaviour that
-keeps the §12.8 pacing targets achievable lives in Layer 1's event queue and Layer 3's
-coalesced rebuild logic (§12.1, §12.3) — it is orchestration-layer responsibility, not
+transactions appropriately, and never synchronously wait on I/O inside a call that Canonical
+Index or a Worker expects to return quickly. The debounce/throttle/coalescing behaviour that
+keeps the §12.8 pacing targets achievable lives in Event Ingestion's event queue and
+Canonical Index's coalesced rebuild logic (§12.1, §12.3) — it is orchestration-layer responsibility, not
 something a port interface can or should enforce.
+
+**Providers are port-and-adapter in one, for their Consumers.** To their Consumers
+(Application Layer), a Provider's canonical cache + query methods + change events
+function as a **port** — a stable contract Consumers depend on without knowing how it is
+fulfilled. To the layers below (Canonical Index, Ports), the same Provider acts as an
+**adapter** — it knows how to orchestrate `MetadataPort`, `FileContentPort`, and the
+Canonical Index's synchronous API to build its canonical view. This is a deliberate,
+scoped collapse of the port/adapter separation that `src/core`/`src/ports` otherwise
+enforces strictly. It is acceptable here because: (a) the scope is narrow — one domain
+concern per Provider; (b) Providers sit close to the final Consumer, where the cost of an
+unswappable implementation is low; (c) Providers live outside `src/core`/`src/ports`
+already, so they were never bound by the core-purity rule (§12.9, `src/core/README.md`).
+Consequence: a Provider's internal cache shape is not swappable the way `MetadataPort`'s
+Obsidian-vs-fake adapter is. This is intentional, not an oversight — see Decision Record
+B.15.
 
 ---
 
@@ -245,7 +269,7 @@ flowchart LR
         P2b[No frontmatter only]
         I2 --> P2a
         I2 --> P2b
-        C2a(CON Layer 3 would depend on Layer 4 to build the tree which is circular)
+        C2a(CON Canonical Index would depend on Content Projection to build the tree which is circular)
         C2b(CON Boot would need every file read before any hierarchy existed)
         C2c(CON Notebook Navigator could not see it)
         P2a --> C2a
@@ -288,14 +312,14 @@ flowchart LR
         D4([DECIDED one database per vault])
         P4b ==> D4
     end
-    subgraph S5["I5: Should Layer 3 and Worker domain algorithms depend on Obsidian and Dexie directly or through ports"]
-        I5{{Should Layer 3 and Worker domain algorithms depend on Obsidian and Dexie directly or through ports}}
+    subgraph S5["I5: Should Canonical Index and Worker domain algorithms depend on Obsidian and Dexie directly or through ports"]
+        I5{{Should Canonical Index and Worker domain algorithms depend on Obsidian and Dexie directly or through ports}}
         P5a[Depend on metadataCache vault and Dexie directly]
         P5b[Depend on port interfaces implemented by adapters]
         I5 --> P5a
         I5 --> P5b
         C5a(CON No seam for unit testing boundary resolution traversal and scope algorithms)
-        C5b(CON Retrofitting the seam after Layers 1 to 4 are built is a much larger refactor)
+        C5b(CON Retrofitting the seam after Event Ingestion through Content Projection are built is a much larger refactor)
         P5a --> C5a
         P5a --> C5b
         A5a(PRO Core algorithms become testable against an in memory fake)
@@ -316,5 +340,114 @@ consequences, not their outcomes. Note Properties are still read from `metadataC
 (D2) and the cache is still one Dexie database per vault (D4); `MetadataPort` and
 `PersistencePort` are adapters over those same unchanged choices. The only new thing is
 the seam between them and the core algorithms that consume them (§12.9)._
+
+---
+
+## B.14 RealmId Synchronization
+
+**Chain:** extends B.7's I4/D4 (one database per vault with a `realmId` column) — this
+record does not reopen _whether_ Realms are physically separated, only _when_ a
+`realmId` write is safe to commit.
+
+```mermaid
+flowchart LR
+    subgraph S1["I1: How does PersistencePort ever get a correct realmId when Obsidian events arrive out of order"]
+        I1{{How does PersistencePort ever get a correct realmId when Obsidian events arrive out of order}}
+        P1[Write eagerly per event with a best guess or nullable realmId and patch later]
+        P2[Canonical Index consolidates events first resolves the hierarchy top down then commits once realmId is known]
+        I1 --> P1
+        I1 --> P2
+        C1(CON Queries predicated on realmId would be unsafe against partially resolved rows)
+        P1 --> C1
+        A1(PRO IndexedDB rows are never observably inconsistent a reader sees the pre change or the fully resolved post change state)
+        A2(PRO Matches the existing boot time delta sync chunked yielding pattern consolidation before write was already implicit)
+        P2 --> A1
+        P2 --> A2
+        D1([DECIDED Canonical Index consolidates and resolves realmId in memory before a single atomic Dexie transaction])
+        P2 ==> D1
+    end
+    subgraph S2["I2: What happens when a Realm itself moves forcing a bulk realmId rewrite across a subtree"]
+        I2{{What happens when a Realm itself moves forcing a bulk realmId rewrite across a subtree}}
+        P3[Special case bulk realmId migration with a background job and progress UI]
+        P4[Treat it as an ordinary Dexie transaction across the affected rows]
+        I2 --> P3
+        I2 --> P4
+        C2(CON Added complexity for an operation with no evidence of being common)
+        P3 --> C2
+        A3(PRO Realm moves require deliberate rare authoring action so a larger than usual transaction cost is acceptable)
+        A4(PRO Dexie transactions are already atomic and non blocking a bigger transaction is quantitative not qualitative)
+        P4 --> A3
+        P4 --> A4
+        D2([DECIDED no special casing bulk realmId rewrites are an ordinary transaction])
+        P4 ==> D2
+        M1(MITIGATION revisit if real world usage later shows this is disruptive no evidence yet that it is a problem)
+        D2 --> M1
+    end
+    D1 -.-> I2
+```
+
+_D1 and D2 do not supersede B.7's D4 — the dotted arrow marks that D1's consolidate-then-
+commit mechanism forced I2 (the Realm-move case) to be reasoned through explicitly, not
+that the one-database-per-vault, `realmId`-column schema (D4) changed. `PersistencePort`
+still never receives a write until `realmId` is known; Realm moves are still an ordinary,
+if larger, transaction against that same schema._
+
+---
+
+## B.15 In-Memory Cache Ownership and Lifecycle
+
+**Chain:** cross-references B.7 (Architecture, §12.4/§12.9's Provider caching rule) and
+B.14 (RealmId Synchronization) — all three concern the Canonical Index / Provider
+boundary.
+
+```mermaid
+flowchart LR
+    subgraph S1["I1: Who owns in-memory caches derived from Provider data the Provider or each Consumer"]
+        I1{{Who owns in-memory caches derived from Provider data the Provider or each Consumer}}
+        P1[Consumer owned forward caches from the start each Consumer builds the exact shape it needs]
+        P2[Provider owned canonical cache only at launch Consumers query the Provider directly]
+        I1 --> P1
+        I1 --> P2
+        A1(PRO Theoretically optimal performance per Consumer)
+        C1(CON No real usage data yet to know what shape is optimal risk of guessing wrong)
+        C2(CON Multiple Consumers independently caching the same records reintroduces the desynchronisation risk section 12.4 already warns about)
+        P1 --> A1
+        P1 --> C1
+        P1 --> C2
+        A2(PRO Single source of truth per Provider no coordination problem to solve)
+        A3(PRO Matches the already decided section 12.4 rule Providers own their in memory caches Consumers must never cache)
+        A4(PRO Removes a class of premature optimization decisions entirely)
+        P2 --> A2
+        P2 --> A3
+        P2 --> A4
+        D1([DECIDED Provider owned canonical cache only at launch no Consumer side caching in Stage 1])
+        P2 ==> D1
+    end
+    subgraph S2["I2: How does the design evolve once a Consumer query pattern against the canonical cache causes a felt performance problem"]
+        I2{{How does the design evolve once a Consumer query pattern against the canonical cache causes a felt performance problem}}
+        P3[Ad hoc optimization whenever a slowdown is reported against no fixed threshold]
+        P4[A staged lifecycle owned by the Provider throughout ownership never transfers to the Consumer]
+        I2 --> P3
+        I2 --> P4
+        C3(CON Guessing cache shapes upfront has historically produced worse fitting caches per the project measure do not guess stance)
+        P3 --> C3
+        A5(PRO Cache shape evolves to match observed usage rather than anticipated usage avoiding both premature optimization and premature abstraction)
+        P4 --> A5
+        D2(["DECIDED staged lifecycle: (1) canonical only, retaining all fields; (2) lived-in measurement via lightweight performance.now instrumentation, no optimization until a felt slowdown; (3) secondary cache added once a bottleneck is measured; (4) promotion check (5.5) tests whether other Consumers benefit or are unharmed before promoting the secondary to canonical; (5) culling of caches with no active Consumers, noting rebuild cost; (6) IndexedDB schema audit only after a cache is confidently gone for good"])
+        P4 ==> D2
+        C4(CON accepted Early Consumers may feel avoidable lag for a short period before Stage 3 kicks in)
+        D2 --> C4
+    end
+    D1 -.-> I2
+```
+
+_Consequence, stated honestly: a Provider's cache shape is therefore **not** a stable
+public contract the way `MetadataPort`/`PersistencePort` are — it is expected to change
+(via promotion) as real usage is observed. Consumers must query through typed getter
+methods only, never touch a Provider's internal cache structure directly, so shape
+changes never break Consumer code. This does not reverse B.7's D5 (ports) or §12.4's
+Provider-owns-its-cache rule — D1 above only extends the latter with a lifecycle; see also
+B.14, whose D1 (consolidate-then-commit) is a Canonical Index-side instance of the same
+"don't optimize/special-case until it hurts" philosophy._
 
 ---

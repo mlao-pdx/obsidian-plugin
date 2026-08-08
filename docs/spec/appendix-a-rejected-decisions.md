@@ -19,7 +19,7 @@ Recorded so they are not relitigated.
 | Minimum alias length guard                          | Shared with the Mention Index, so a character named `Ed` would have had no progressions at all.             |
 | `narradin_id` content sentinel for loop suppression | Renames carry no content; non-markdown files have no frontmatter; `vault.modify` races `metadataCache`.     |
 | Exclusive Narradin ownership of `aliases`           | Would delete hand edits made in external editors.                                                           |
-| Note Properties readable from the body              | Layer 3 would depend on Layer 4 to build the tree. Circular.                                                |
+| Note Properties readable from the body              | Canonical Index would depend on Content Projection to build the tree. Circular.                             |
 | Per-Realm physical database separation              | Nested Realms put a row in two at once; Realm moves would force migrations.                                 |
 | Logical reattachment of out-of-order boundaries     | Would require inventing a sort position the subtree does not physically have.                               |
 | Global `ledgerWatermark`                            | Incoherent once propagation was scope-bounded.                                                              |

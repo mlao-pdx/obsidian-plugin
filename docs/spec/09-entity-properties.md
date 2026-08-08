@@ -33,8 +33,8 @@ and merely happens to live here.
 **Why Note Properties are frontmatter-only.** This is an architectural constraint, not a
 terminology preference. `metadataCache.on('resolved')` delivers every frontmatter block
 in the vault, from Obsidian's own index, at boot. Body properties are Narradin's own
-parse — debounced, driven by `vault.on('modify')`, resolved at Layer 4. If `is` could
-live in the body, Layer 3 would depend on Layer 4 to build the tree (circular), boot
+parse — debounced, driven by `vault.on('modify')`, resolved at Content Projection (§12.4). If `is` could
+live in the body, Canonical Index (§12.3) would depend on Content Projection to build the tree (circular), boot
 would require reading every file before any hierarchy existed, and Notebook Navigator
 could not see it — the very reason `is` is worth having.
 
@@ -462,7 +462,7 @@ interface EditorialPropertyRecord {
 
 `fileId` on both records already implies the host note; `sequenceIndex` and
 `companionRank` for that host are resolved by whatever component walks the Content
-Sequence (Indexer/Layer 3, §7.5), not stored redundantly on every property record.
+Sequence (Indexer/Canonical Index, §7.5), not stored redundantly on every property record.
 Whatever component composes a full cross-note sort order (Part 16 views) must join on
 `fileId` to pull those two fields in from the host record.
 
