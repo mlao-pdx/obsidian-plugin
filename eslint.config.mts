@@ -7,6 +7,7 @@ export default defineConfig(
 	globalIgnores([
 		'node_modules',
 		'dist',
+		'coverage',
 		'esbuild.config.mjs',
 		'version-bump.mjs',
 		'versions.json',
@@ -14,6 +15,7 @@ export default defineConfig(
 		'package.json',
 		'package-lock.json',
 		'tsconfig.json',
+		'scripts/promote-fast-check.mjs',
 	]),
 	{
 		languageOptions: {
@@ -22,10 +24,23 @@ export default defineConfig(
 			},
 			parserOptions: {
 				projectService: {
-					allowDefaultProject: ['eslint.config.mts', 'manifest.json'],
+					allowDefaultProject: [
+						'eslint.config.mts',
+						'manifest.json',
+						'vitest.config.ts',
+						'vitest.properties.config.ts',
+					],
 				},
 				tsconfigRootDir: import.meta.dirname,
 				extraFileExtensions: ['.json'],
+			},
+		},
+	},
+	{
+		files: ['tests/**/*.ts'],
+		languageOptions: {
+			globals: {
+				...globals.node,
 			},
 		},
 	},

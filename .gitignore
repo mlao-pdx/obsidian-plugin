@@ -37,6 +37,9 @@ coverage/
 .nyc_output/
 *.lcov
 
+# fast-check property-test findings (local debugging artifacts only)
+.fast-check-findings/
+
 # Secrets / local environment files
 .env
 .env.*
