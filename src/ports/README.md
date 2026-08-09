@@ -31,6 +31,8 @@ layers depend on which port.
 - **No implementations here.** Adapters are a separate concern, built when
   Layers 1–4 are actually implemented.
 - **No `obsidian` or `dexie` imports.** These interfaces exist so
-  `src/core` never has to import either.
+  `src/core` never has to import either. Enforced by the
+  `no-restricted-imports` rule in `eslint.config.mts` — see
+  `src/core/README.md`#enforcement.
 - Port shapes are expected to grow as the layers they serve are built —
   treat these as living contracts, not finished APIs.

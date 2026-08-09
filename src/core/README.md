@@ -31,10 +31,10 @@ technology directly.
 
 ## Enforcement
 
-There is currently no automated lint enforcing this boundary (planned as a
-Stage 2 ESLint rule leaning on `verbatimModuleSyntax`). Until that lands,
-treat "no `obsidian`/`dexie` import in `src/core`" as a manual review
-requirement on every PR touching this directory.
+`eslint.config.mts` enforces this boundary via a `no-restricted-imports`
+override on `src/core/**` and `src/ports/**`. A runtime import of `obsidian`
+or `dexie` (or their subpaths) fails `npm run lint` / CI — never suppress
+this rule with `eslint-disable`.
 
 See `docs/spec/12-architecture.md` §12.9 and `src/ports/README.md` for the
 full port/adapter boundary rationale.

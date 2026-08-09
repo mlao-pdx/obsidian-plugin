@@ -9,6 +9,14 @@ import path from 'node:path';
 import readline from 'node:readline';
 
 const FINDINGS_DIR = path.resolve(process.cwd(), '.fast-check-findings');
+const LOG_FILE = path.resolve(process.cwd(), 'docs/dev/fast-check-log.md');
+const LOG_HEADER = `# Fast-check finding log
+
+Append-only history of fast-check discoveries surfaced by
+\`npm run test:promote\`, whether the finding was promoted to a permanent
+regression test or dismissed. Entries are written automatically by
+\`scripts/promote-fast-check.mjs\`; do not hand-edit past entries.
+`;
 
 function loadFindings() {
 	if (!fs.existsSync(FINDINGS_DIR)) return [];
@@ -54,6 +62,26 @@ function ask(rl, question) {
 	});
 }
 
+function appendLogEntry({ finding }, resolution) {
+	fs.mkdirSync(path.dirname(LOG_FILE), { recursive: true });
+	if (!fs.existsSync(LOG_FILE)) {
+		fs.writeFileSync(LOG_FILE, LOG_HEADER);
+	}
+
+	const { id, timestamp, seed, counterexamplePath, counterexample } = finding;
+	const entry = [
+		'',
+		`## ${id} — ${timestamp}`,
+		`- seed: ${seed}, path: ${JSON.stringify(counterexamplePath)}`,
+		`- counterexample: ${JSON.stringify(counterexample)}`,
+		`- resolution: ${resolution}`,
+		'- regression test: TODO (fill in the *.test.ts path manually once promoted)',
+		'',
+	].join('\n');
+	fs.appendFileSync(LOG_FILE, entry);
+	console.log(`Logged finding ${id} to ${path.relative(process.cwd(), LOG_FILE)}`);
+}
+
 async function main() {
 	const findings = loadFindings();
 	if (findings.length === 0) {
@@ -81,6 +109,11 @@ async function main() {
 
 		const entry = findings[index];
 		printTemplate(entry);
+
+		const resolutionAnswer = await ask(rl, 'Promoted or dismissed? [promoted] ');
+		const resolution =
+			resolutionAnswer.trim().toLowerCase() === 'dismissed' ? 'dismissed' : 'promoted';
+		appendLogEntry(entry, resolution);
 
 		const deleteAnswer = await ask(rl, 'Delete this finding file now? (y/N) ');
 		if (deleteAnswer.trim().toLowerCase() === 'y') {

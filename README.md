@@ -50,7 +50,10 @@ local debugging artifact only) instead of only printing to the console.
 
 1. Run `npm run test:properties` locally.
 2. A failing property writes `.fast-check-findings/<id>.json`.
-3. Run `npm run test:promote`, and pick the finding from the list.
+3. Run `npm run test:promote`, and pick the finding from the list. This
+   automatically appends an entry for it to `docs/dev/fast-check-log.md`
+   (tracked, append-only) — recording the finding is not lost even if the
+   scratch JSON file is deleted or dismissed.
 4. Copy the printed regression template into the matching `*.test.ts` file,
    fill in the assertion, and confirm it fails against the current code.
 5. Fix the implementation until the new regression test (and the original
@@ -65,6 +68,24 @@ Conventions:
 - Once real `src/core` modules exist, colocate their shared fast-check
   arbitraries in a `<module>.arbitraries.ts` file next to the module,
   imported from both its `.test.ts` and `.properties.test.ts`.
+
+## Linting
+
+Lint runs on [ESLint](https://eslint.org/); config lives in
+`eslint.config.mts`.
+
+- `eslint-plugin-obsidianmd`'s recommended config is the base ruleset
+  (Obsidian API usage best-practices).
+- `eslint-config-prettier` disables stylistic rules that Prettier owns —
+  don't fight Prettier formatting via ESLint; run `npm run format` instead.
+- `src/core/**` and `src/ports/**` have a project-specific
+  `no-restricted-imports` rule banning `obsidian`/`dexie` imports (see
+  `src/core/README.md` for the architectural rationale). This is the one
+  rule an LLM contributor must never suppress with `eslint-disable` —
+  fix the import boundary instead.
+- TypeScript strictness flags (`noUnusedLocals`, `noUnusedParameters`,
+  `verbatimModuleSyntax`) already do lint-adjacent work — `tsc` (run via
+  `npm run typecheck` or `npm run build`) catches things ESLint won't.
 
 ## Funding
 

@@ -45,5 +45,27 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		files: ['src/core/**/*.ts', 'src/ports/**/*.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: ['obsidian', 'obsidian/*'],
+							message:
+								'src/core and src/ports must not import obsidian at runtime — depend on a @ports/* interface instead.',
+						},
+						{
+							group: ['dexie', 'dexie/*'],
+							message:
+								'src/core and src/ports must not import dexie at runtime — depend on a @ports/* interface instead.',
+						},
+					],
+				},
+			],
+		},
+	},
 	prettier,
 );
