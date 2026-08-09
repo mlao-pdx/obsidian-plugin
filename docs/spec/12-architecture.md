@@ -188,7 +188,7 @@ Current members: `narradin__fka`, `narradin__generated`, `narradin__ack`.
 
 ### 12.9 Ports and the Core Boundary
 
-`src/core/**` never imports `obsidian` or `dexie` at runtime. Four ports (`src/ports/`)
+`src/core/**` never imports `obsidian` or `dexie` at runtime. Five ports (`src/ports/`)
 form the seam between the domain algorithms above and the technologies that back them:
 
 | Port              | Wraps                                                                | Depended on by                                                                                     |
@@ -197,6 +197,24 @@ form the seam between the domain algorithms above and the technologies that back
 | `FileContentPort` | `vault.read` / `vault.cachedRead`                                    | Event Ingestion / Event Semantics Entity Property parsing (§12.1)                                  |
 | `PersistencePort` | the Dexie/IndexedDB schema (§12.3 "Database")                        | Canonical Index's boundary-resolution, Content Sequence traversal (§7.5), and scope-map algorithms |
 | `VaultWritePort`  | `vault.modify` / `rename` / `delete` + the pending-write set (§12.1) | Workers' write-execution step (§12.7), not their plan computation                                  |
+| `LoggerPort`      | `Vault.adapter` (`DataAdapter`) writes under `_narradin/logs/`       | Developer-diagnostics logging, opt-in, silent by default (Decision Record B.16)                    |
+
+**`LoggerPort`.** `log(level: LogLevel, message: string, meta?: Record<string,
+unknown>): void` — the only method. `LogLevel` is `trace | debug | info | warn |
+error`. Unlike the other four ports, nothing depends on it yet by necessity: it
+exists so a wiring point is available as soon as call-sites are added
+organically, per Decision Record B.16. Its adapter (`ObsidianLoggerAdapter`,
+`src/adapters/`) owns the enabled/level checks (no I/O below the configured
+threshold or while logging is disabled), formatting, single-backup rotation at
+a 5 MB cap, and the vault file write — all against `Vault.adapter`, never
+`Vault.create`/`Vault.modify`, so the plain-text log file never triggers a
+`vault.on('modify')` event or gets treated as an indexed note. **Redaction is
+the caller's responsibility, not the port's or the adapter's**: any
+`message`/`meta` content built from vault content (note titles, aliases,
+property values, body excerpts) must already be wrapped in guillemets
+(`«...»`) by the calling code before it reaches `log()` — neither the
+interface nor the adapter inspects arguments for vault content, since only the
+caller knows which arguments are vault-derived.
 
 None of this reverses an existing decision. `MetadataPort`'s adapter still reads
 frontmatter via `metadataCache` (Appendix B §B.7 D2), and `PersistencePort`'s adapter is

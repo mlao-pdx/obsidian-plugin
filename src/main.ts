@@ -1,11 +1,19 @@
 import { Editor, MarkdownView, type MarkdownFileInfo, Modal, Notice, Plugin } from 'obsidian';
+import { ObsidianLoggerAdapter } from './adapters/obsidian-logger-adapter';
 import { DEFAULT_SETTINGS, type NarradinPluginSettings, NarradinSettingTab } from './settings';
 
 export default class NarradinPlugin extends Plugin {
 	settings!: NarradinPluginSettings;
+	loggerAdapter!: ObsidianLoggerAdapter;
 
 	override async onload() {
 		await this.loadSettings();
+
+		// Wired here so it exists before any future core/service constructor
+		// needs it injected; reads settings live, so no re-wiring is needed
+		// when the user flips the Diagnostics toggle (§12.9, LoggerPort).
+		this.loggerAdapter = new ObsidianLoggerAdapter(this.app, () => this.settings);
+		this.loggerAdapter.log('info', 'Narradin loaded', { version: this.manifest.version });
 
 		// This creates an icon in the left ribbon.
 		this.addRibbonIcon('dice', 'Sample', (_evt: MouseEvent) => {
@@ -64,7 +72,9 @@ export default class NarradinPlugin extends Plugin {
 		});
 	}
 
-	override onunload() {}
+	override onunload() {
+		this.loggerAdapter.log('info', 'Narradin unloaded');
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign(

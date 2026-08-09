@@ -22,14 +22,22 @@ against the real Obsidian API or Dexie schema.
 | `FileContentPort` | `vault.read` / `vault.cachedRead`                        | Layer 1/2 Entity Property parsing                                           |
 | `PersistencePort` | Dexie/IndexedDB schema                                   | Layer 3 traversal/resolution algorithms (paths, hierarchy, scope, mentions) |
 | `VaultWritePort`  | `vault.modify` / `rename` / `delete` + pending-write set | Workers (Alias Application Engine, Compiler) execution step                 |
+| `LoggerPort`      | vault-file writes for developer diagnostics              | Any layer, once instrumented — opt-in, silent by default (§B.16)            |
 
 See `docs/spec/12-architecture.md` §12.9 for the full rationale and which
 layers depend on which port.
 
+## Current adapters
+
+`src/adapters/` holds implementations, living outside `src/core`/`src/ports`
+per the rule below. First one: `ObsidianLoggerAdapter` implements
+`LoggerPort` (§B.16).
+
 ## Rules
 
 - **No implementations here.** Adapters are a separate concern, built when
-  Layers 1–4 are actually implemented.
+  Layers 1–4 are actually implemented (`LoggerPort`'s adapter is the first
+  exception, since diagnostics needed no Layer to precede it).
 - **No `obsidian` or `dexie` imports.** These interfaces exist so
   `src/core` never has to import either. Enforced by the
   `no-restricted-imports` rule in `eslint.config.mts` — see

@@ -39,5 +39,13 @@ describe('NarradinPlugin lifecycle (smoke)', () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 		expect(plugin.settings.exampleSetting).toBe('default');
+		expect(plugin.settings.loggingEnabled).toBe(false);
+		expect(plugin.settings.logLevel).toBe('warn');
+	});
+
+	it('constructs a loggerAdapter during onload()', async () => {
+		const plugin = createPlugin();
+		await plugin.onload();
+		expect(plugin.loggerAdapter).toBeDefined();
 	});
 });

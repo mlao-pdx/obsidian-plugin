@@ -11,9 +11,9 @@
  * Keep this intentionally small: cover only what `main.ts`/`settings.ts`
  * currently touch (`addRibbonIcon`, `addStatusBarItem`, `addCommand`,
  * `addSettingTab`, `registerDomEvent`, `loadData`/`saveData`, and the
- * `Modal`/`PluginSettingTab`/`Setting` constructors they call). Grow it
- * only as those files grow — do not pre-build mock surface for unused
- * Obsidian APIs.
+ * `Modal`/`PluginSettingTab`/`Setting` constructors they call, plus
+ * `normalizePath` for the logger adapter). Grow it only as those files
+ * grow — do not pre-build mock surface for unused Obsidian APIs.
  */
 
 export class Component {
@@ -73,7 +73,10 @@ export class Notice {
 export class PluginSettingTab {
 	app: unknown;
 	plugin: unknown;
-	containerEl = { empty: () => {} };
+	containerEl = {
+		empty: () => {},
+		createEl: (_tag: string, _options?: unknown) => ({}),
+	};
 
 	constructor(app: unknown, plugin: unknown) {
 		this.app = app;
@@ -95,6 +98,81 @@ export class Setting {
 	addText(_configure: (component: unknown) => unknown): this {
 		return this;
 	}
+
+	addToggle(configure: (component: MockToggleComponent) => unknown): this {
+		configure(new MockToggleComponent());
+		return this;
+	}
+
+	addDropdown(configure: (component: MockDropdownComponent) => unknown): this {
+		configure(new MockDropdownComponent());
+		return this;
+	}
+
+	addButton(configure: (component: MockButtonComponent) => unknown): this {
+		configure(new MockButtonComponent());
+		return this;
+	}
+
+	setHeading(): this {
+		return this;
+	}
+}
+
+/** Minimal stand-in for Obsidian's `ToggleComponent`. */
+export class MockToggleComponent {
+	setValue(_value: boolean): this {
+		return this;
+	}
+
+	onChange(_callback: (value: boolean) => unknown): this {
+		return this;
+	}
+}
+
+/** Minimal stand-in for Obsidian's `DropdownComponent`. */
+export class MockDropdownComponent {
+	addOption(_value: string, _display: string): this {
+		return this;
+	}
+
+	setValue(_value: string): this {
+		return this;
+	}
+
+	setDisabled(_disabled: boolean): this {
+		return this;
+	}
+
+	onChange(_callback: (value: string) => unknown): this {
+		return this;
+	}
+}
+
+/** Minimal stand-in for Obsidian's `ButtonComponent`. */
+export class MockButtonComponent {
+	setButtonText(_text: string): this {
+		return this;
+	}
+
+	setWarning(): this {
+		return this;
+	}
+
+	onClick(_callback: (evt: MouseEvent) => unknown): this {
+		return this;
+	}
+}
+
+/**
+ * Minimal stand-in for Obsidian's `normalizePath`: collapses repeated
+ * slashes and strips a trailing slash. Sufficient for the logger
+ * adapter's path joins in tests; the real implementation additionally
+ * handles Windows separators and `.`/`..` segments, which nothing here
+ * exercises.
+ */
+export function normalizePath(path: string): string {
+	return path.replace(/\/+/g, '/').replace(/\/$/, '');
 }
 
 export class MarkdownView {}

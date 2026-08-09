@@ -41,4 +41,4 @@ architecture-boundary rules (e.g. `core_purity_rule` from `12-architecture.md` /
 - [Part 15: Open Questions](15-open-questions.md) — Outstanding questions and what they block. Includes Decision Record B.11 Open Issues.
 - [Part 16: Views](16-views.md) — Progressions, Setups & Payoffs, cast lists, POV, outtake markers, anchor cascade, icon registry, and report chrome. Includes Decision Record B.9 POV as a Positional Value.
 - [Appendix A: Design Decisions Considered and Rejected](appendix-a-rejected-decisions.md) — Flat table of rejected designs and why, recorded so they aren't relitigated.
-- [Appendix B: Notation and Cross-Cutting Decisions](appendix-b-notation-and-cross-cutting.md) — The IBIS graph legend ("Reading the graphs"), B.10 Load-Bearing Chains (decisions spanning multiple Parts), and B.12 Maintaining This Appendix.
+- [Appendix B: Notation and Cross-Cutting Decisions](appendix-b-notation-and-cross-cutting.md) — The IBIS graph legend ("Reading the graphs"), B.10 Load-Bearing Chains (decisions spanning multiple Parts), B.12 Maintaining This Appendix, and B.16 Developer Logging and Metrics.

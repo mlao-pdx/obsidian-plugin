@@ -1,0 +1,20 @@
+# `src/adapters/`
+
+Adapter implementations of the interfaces declared in `src/ports/`. This is
+where `obsidian` (and, later, `dexie`) runtime imports are allowed — the
+`no-restricted-imports` override in `eslint.config.mts` only targets
+`src/core/**` and `src/ports/**` (see `src/core/README.md`#enforcement,
+`src/ports/README.md`).
+
+## Current adapters
+
+| Adapter                 | Implements   | Wraps                                                   |
+| ----------------------- | ------------ | ------------------------------------------------------- |
+| `ObsidianLoggerAdapter` | `LoggerPort` | `Vault.adapter` (`DataAdapter`) under `_narradin/logs/` |
+
+`logger-format.ts` holds the pure formatting/level-filtering helpers the
+adapter uses, split out with zero `obsidian` import so they're unit-testable
+without mocking the Obsidian API.
+
+See `docs/spec/appendix-b-notation-and-cross-cutting.md` B.16 and
+`docs/spec/12-architecture.md` §12.9 for the design rationale.
