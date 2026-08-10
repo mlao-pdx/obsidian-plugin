@@ -1,6 +1,6 @@
 ---
 name: obsidian-plugin-patterns
-description: Common Obsidian plugin code patterns (file organization, adding commands, persisting settings, registering listeners safely) and UI copy/UX guidelines for this project. Load when writing or reviewing plugin source code or user-facing strings.
+description: Common Obsidian plugin code patterns (file organization, adding commands, persisting/settings-tab, vault/frontmatter, metadata events, lifecycle, secrets, destructive-action confirmation, registering listeners safely), the plugin-review guidelines checklist, and UI copy/UX guidelines for this project. Load when writing or reviewing plugin source code or user-facing strings.
 ---
 
 # Obsidian plugin patterns
@@ -57,6 +57,11 @@ export const DEFAULT_SETTINGS: MySettings = {
 	apiKey: '',
 };
 ```
+
+> ⚠️ `apiKey` here is a placeholder field for illustrating file structure, not
+> a real secret-storage pattern — if a setting actually holds an API key or
+> token, store the secret's _name_ and use `SecretStorage` instead. See
+> "Store secrets" below.
 
 **commands/index.ts**:
 
@@ -209,6 +214,148 @@ export default class MyPlugin extends Plugin {
   ad-hoc fields — child components unload automatically when their parent
   unloads, so ownership and teardown order stay correct without manual wiring.
 
+## Settings tab (declarative API, Obsidian 1.13+)
+
+Source: `https://docs.obsidian.md/Plugins/User+interface/Settings`,
+`https://docs.obsidian.md/plugins/guides/migrate-declarative-settings`.
+`minAppVersion` is already `1.13.0` (`manifest.json`) — always use this API,
+never the legacy imperative `display()` override.
+
+```ts
+import { App, PluginSettingTab } from 'obsidian';
+import NarradinPlugin from './main';
+
+export class NarradinSettingTab extends PluginSettingTab {
+	constructor(app: App, private plugin: NarradinPlugin) {
+		super(app, plugin);
+	}
+
+	getSettingDefinitions() {
+		return [
+			// General — no heading, stays at the top (style rule below).
+			{ name: 'Enable feature', control: { type: 'toggle', key: 'enabled' } },
+			{
+				type: 'group',
+				heading: 'Advanced',
+				items: [
+					{
+						name: 'Cache size (MB)',
+						control: { type: 'number', key: 'cacheMb', min: 1, max: 500 },
+					},
+				],
+			},
+		];
+	}
+}
+```
+
+- Register with `this.addSettingTab(new NarradinSettingTab(this.app, this))`
+  in `onload()`, same as before.
+- A `control` definition (`key` names a property on `this.plugin.settings`)
+  reads, writes, and calls `saveData()` for you — no `onChange` plumbing.
+  Control types: `toggle`, `text`, `textarea`, `number`, `slider`, `dropdown`,
+  `file`, `folder`, `color`. Every control accepts `defaultValue` and an
+  optional `validate: (value) => string | void` (return a message to reject).
+- `control`, `render`, and `action` on one definition are mutually exclusive.
+  Use `render(setting)` only for side effects/custom UI beyond a simple bind
+  (it does **not** auto-save — call `saveData()` yourself); use `action` for
+  a clickable row (common inside `type: 'list'`).
+- `visible` (hide entirely) vs `disabled` (grey out but keep legible) are
+  both `boolean | () => boolean`, re-evaluated automatically after any
+  `control` change. Use `visible` when the setting is irrelevant right now;
+  `disabled` when it's meaningful but currently locked.
+- `type: 'group'` = heading + nested items. `type: 'list'` = same, plus
+  `onDelete`/`onReorder`/`emptyState`/`addItem` for user-managed rows (watched
+  folders, aliases). `type: 'page'` = a navigable sub-page — use sparingly,
+  only for a self-contained section too long for the parent tab.
+- **`getSettingDefinitions()` must stay cheap** — it also runs once at tab
+  registration to index global settings search. No I/O, no network, no heavy
+  computation. Call `this.update()` when the _set_ of rows changes; call
+  `this.refreshDomState()` after mutating state a `visible`/`disabled`
+  predicate depends on, without a full re-render.
+- Style rules (enforced in review, see below): sentence case everywhere: no
+  top-level "General"/plugin-name heading; no "settings" inside heading text
+  (`Advanced`, not `Advanced settings`); one control per row; save on every
+  change, never on a submit button; keep `desc` to one sentence — link out or
+  use a confirmation `Modal` instead of inlining a warning.
+
+## Store secrets
+
+Source: `https://docs.obsidian.md/plugins/guides/secret-storage`. Never store
+an API key/token as a plain settings string — use `SecretStorage` so the
+value lives in local storage (not `data.json`) and can be shared across
+plugins instead of duplicated.
+
+```ts
+import { App, PluginSettingTab, SecretComponent, Setting } from 'obsidian';
+
+// Settings interface stores the secret's *name*, not its value.
+interface NarradinSettings {
+	apiKeySecretName: string;
+}
+
+// In a render callback (SecretComponent needs `app`, so it can't be a plain `control`):
+{
+	name: 'API key',
+	desc: 'Select a secret from SecretStorage',
+	render: (setting) =>
+		setting.addComponent((el) =>
+			new SecretComponent(this.app, el)
+				.setValue(this.plugin.settings.apiKeySecretName)
+				.onChange(async (value) => {
+					this.plugin.settings.apiKeySecretName = value;
+					await this.plugin.saveData(this.plugin.settings);
+				}),
+		),
+}
+
+// Retrieve the actual secret only when needed:
+const secret = this.app.secretStorage.getSecret(this.plugin.settings.apiKeySecretName);
+if (secret) {
+	/* use secret */
+}
+```
+
+## Confirming destructive actions
+
+Source: `obsidian.d.ts` (`ConfirmationModal`, `ConfirmationButton`,
+`ButtonComponent.setDestructive`) — new in **Obsidian 1.13.0**, superseding
+the old `setWarning()` pattern. Use this any time an action deletes data or
+is otherwise hard to undo (per `Settings.md`'s style guide: put the warning
+in a modal with an explicit confirm step, not in a settings `desc`).
+
+```ts
+import { App, ConfirmationModal, Notice } from 'obsidian';
+
+function confirmDelete(app: App, itemName: string, onConfirm: () => void) {
+	new ConfirmationModal(app)
+		.setTitle(`Delete "${itemName}"?`)
+		.setContent('This cannot be undone.')
+		.addButton((btn) =>
+			btn
+				.setButtonText('Delete')
+				.setDestructive() // styles the button as destructive (replaces setWarning())
+				.setInitialFocus() // only if Delete, not Cancel, should be the safe default
+				.onClick(() => onConfirm()),
+		)
+		.addCancelButton() // dedicated dismissal button; defaults to "Cancel"
+		.open();
+}
+```
+
+- `ConfirmationButton` (returned by `addButton`'s callback) auto-closes the
+  modal after the click handler resolves — return a truthy value from the
+  handler to keep it open instead (e.g. to surface a validation error inline).
+- `setInitialFocus()` marks which button is focused when the modal opens; if
+  several are marked, the last one wins. Prefer focusing **Cancel**, not the
+  destructive action, unless the action is genuinely the expected/safe path.
+- `setSecondary()` places a button away from the primary/cancel pair — use it
+  for a tertiary action, not the destructive one itself.
+- On a plain `ButtonComponent` (outside a `ConfirmationModal`, e.g. a settings
+  row), the same styling is `setDestructive()`/`removeDestructive()`; compose
+  with `setCta()` for a destructive _primary_ action. `setWarning()` still
+  exists but is deprecated in favor of `setDestructive()`.
+
 ## Notebook Navigator / Templater compatibility
 
 No new fetch needed here — the contract already lives in spec prose; don't
@@ -233,6 +380,50 @@ re-derive it, cross-reference it:
 > NN version's behavior. Do not silently resolve this: treat it as an open
 > spec question and confirm against a live Notebook Navigator install before
 > relying on the exact `sort_index` mechanics in `07-hierarchy-and-narrative-order.md`.
+
+## Plugin review guidelines (why, not just what)
+
+Source: `https://docs.obsidian.md/plugins/releasing/plugin-guidelines` — the
+actual review-comment checklist Obsidian's plugin reviewers use. Each rule
+below is a correctness/security reason, not a style nitpick:
+
+- **Never use the global `app`/`window.app`.** Always `this.app`. The global
+  is for debugging only and may be removed later.
+- **Never `innerHTML`/`outerHTML`/`insertAdjacentHTML` with any string that
+  contains user or vault-derived data** — arbitrary script injection risk.
+  Use `createEl()`/`createDiv()`/`createSpan()` (see `HTML elements`) or
+  `el.empty()` to clear, never string concatenation into HTML.
+- **Prefer `Vault.process()`/`FileManager.processFrontMatter()` over
+  `Vault.modify()`** — not just for the frontmatter-write constraint already
+  in `AGENTS.md`, but because `process()`/`processFrontMatter()` are atomic
+  and avoid clobbering a concurrent write from another plugin.
+- **Prefer the `Editor` API over `Vault.modify()` for the _active_ file** —
+  `Vault.modify()` loses cursor position, selection, and folded state that
+  `Editor` preserves; only reach for `Vault.process()` when the file being
+  edited is not the one currently open.
+- **No hardcoded inline styles** (`el.style.color = 'red'`) — breaks user
+  themes/snippets. Use a CSS class plus Obsidian's CSS variables (see
+  `CSS variables`); only define a custom variable if no existing one fits.
+- **`normalizePath()`** on any user-supplied or self-constructed vault path —
+  collapses slash variants, strips leading/trailing slashes, normalizes
+  non-breaking spaces. Never build a path by hand and skip this.
+- **Never iterate `vault.getFiles()` to find one path** — use
+  `getFileByPath()`/`getFolderByPath()`/`getAbstractFileByPath()` instead;
+  the former is O(n) per lookup and doesn't scale to large vaults.
+- **Never read `workspace.activeLeaf` directly** — use
+  `getActiveViewOfType(MarkdownView)` or `workspace.activeEditor?.editor`.
+- **`const`/`let` over `var`; `async`/`await` over `.then()` chains** —
+  already covered by `AGENTS.md`'s TypeScript rules, repeated here because
+  it's an explicit review criterion, not just house style.
+- **No default hotkeys** (`Command.hotkeys`) — reinforces the existing
+  Narradin rule (see `AGENTS.md`): a default can conflict with the user's own
+  bindings or another plugin's, and there is no cross-platform-safe default
+  to pick. Binding is always the user's choice, made in Obsidian's own
+  Hotkeys settings.
+- Use `callback` for a command that always runs, `checkCallback` when it must
+  conditionally hide from the palette, and `editorCallback`/
+  `editorCheckCallback` when it requires an open Markdown editor — don't
+  reimplement that gating inside a plain `callback`.
 
 ## UX & copy guidelines (for UI text, commands, settings)
 

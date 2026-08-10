@@ -16,7 +16,10 @@
 - Split large files: if a file exceeds ~200-300 lines, break it into
   smaller, focused modules with a single, well-defined responsibility.
 - Bundle everything into `main.js` (no unbundled runtime deps).
-- Avoid Node/Electron APIs unless `isDesktopOnly` is intentionally `true`.
+- Desktop-only plugin (`manifest.json` sets `isDesktopOnly: true`). Node/
+  Electron APIs are fine to use. Mobile is explicitly out of scope: not
+  tested, not designed for, and not a goal for the foreseeable future (the
+  Git-backed feature set alone rules it out).
 - Prefer `async/await` over promise chains; handle errors gracefully.
 - Never commit build artifacts: `node_modules/`, `main.js`, and other
   generated output must never be tracked in Git.
@@ -50,12 +53,6 @@ Follow Obsidian's Developer Policies and Plugin Guidelines. In particular:
 - Batch disk access and avoid excessive vault scans.
 - Debounce/throttle expensive operations in response to file system events.
 
-## Mobile
-
-- Don't assume desktop-only behavior unless `isDesktopOnly` is `true`.
-- Avoid large in-memory structures; be mindful of memory and storage
-  constraints.
-
 ## Agent do/don't
 
 **Do**
@@ -75,6 +72,9 @@ Follow Obsidian's Developer Policies and Plugin Guidelines. In particular:
 - Ship features that require cloud services without clear disclosure and
   explicit opt-in.
 - Store or transmit vault contents unless essential and consented.
+- Assign a default hotkey to any command (`Command.hotkeys`). Narradin never
+  ships default hotkeys — binding any key is entirely the user's
+  prerogative, configured by them in Obsidian's Hotkeys settings.
 
 ## Git workflow
 
