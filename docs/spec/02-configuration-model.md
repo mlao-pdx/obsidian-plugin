@@ -55,8 +55,10 @@ Chapter`. Only Realm is mandatory; any of the other four may be skipped (§2.2).
 
 ### 2.3 Other Settings
 
-**Indexing** — `sort_index` property name (must match Notebook Navigator's configured
-property); `folder_index` property name.
+**Indexing** — **Configurable keys** `sort_index` (must match Notebook Navigator's
+configured property) and `folder_index`. Both are semantically mandatory; only their
+names are user-configurable. See §9.0 ("Three Kinds of File Property Key") for the full
+three-way file-property taxonomy.
 
 **Companions** — suffix separator (default `__`); per-type suffixes; **companion type
 order**. No companion type is mandatory; `__prose` ships as a default, nothing more.

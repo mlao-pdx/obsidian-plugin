@@ -42,14 +42,40 @@ could not see it — the very reason `is` is worth having.
 blocked. Health reports: _"`is` found as a body Inline Property in 3 notes. Narradin
 reads `is` only from frontmatter."_ Half-Fix, visible, accountable.
 
-**Reserved Keys** — never interpreted as an Entity Property subject, in either origin:
+### Three Kinds of File Property Key
 
-| Source              | Keys                                                                |
-| ------------------- | ------------------------------------------------------------------- |
-| Narradin structural | `is`, `for`, `compile`, `folder_index`, `sort_index`, `narradin__*` |
-| Narradin narrative  | `pov`, `settings`                                                   |
-| Obsidian core       | `aliases`, `tags`, `cssclasses`, `icon`                             |
-| Ecosystem           | `excalidraw*` (prefix match)                                        |
+Every frontmatter key a note carries falls into exactly one of three kinds. This
+taxonomy names a distinction that already governs behavior throughout this Part and
+§2.3 — it introduces no new grammar or resolution logic, only the vocabulary for
+categories that already exist.
+
+- **Configurable keys** — plain (unprefixed) keys whose _name_ is user-definable, kept
+  as an exchange layer with the author and other plugins (Notebook Navigator among
+  them). `is`, `sort_index`, and `folder_index` are semantically mandatory — every note
+  must resolve one under _some_ name — but the name itself is freely reconfigurable
+  (§2.3/§2.4) to avoid vault-wide key clashes. The set also includes `icon`, and
+  deliberately leaves room for future additions such as `color`, `background`, other
+  Notebook Navigator-supported keys, and Narradin-recorded status keys.
+- **Interpreted keys** — the default case: any key that is neither Configurable nor
+  `◊`-prefixed is treated as an Entity Property subject, resolved against Player and
+  Plot entities per §9.2's Subject Resolution order. Interpreted keys support multi-key
+  (`|`-separated), multi-context (`+`-separated), and multi-value (`|` on the RHS)
+  forms. In frontmatter, YAML's `:` plays the role the inline grammar's `=` plays in
+  the body — a detail of Obsidian's YAML parser, not of Narradin's grammar.
+- **System keys** — `◊`-prefixed, Narradin-authored and machine-owned, hidden by
+  default (source mode always reveals them). See §9.2's "The Lozenge Namespace" and
+  "Two Classes of System Marker" for the mechanism; this taxonomy only names the
+  category.
+
+**Reserved Keys** — never interpreted as an Entity Property subject, in either origin,
+grouped by the taxonomy above:
+
+| Category                     | Keys                                                                |
+| ---------------------------- | ------------------------------------------------------------------- |
+| Configurable / structural    | `is`, `for`, `compile`, `folder_index`, `sort_index`, `narradin__*` |
+| Configurable / narrative     | `pov`, `settings`                                                   |
+| Configurable / Obsidian core | `aliases`, `tags`, `cssclasses`, `icon`                             |
+| Configurable / ecosystem     | `excalidraw*` (prefix match)                                        |
 
 ### 9.1 Grammar
 

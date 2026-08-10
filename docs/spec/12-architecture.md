@@ -93,12 +93,8 @@ Both directions converge after exactly one corrective action plus one no-op conf
 pass, and at no point does the Canonical Index assert a fact the vault has not yet
 confirmed for itself.
 
-_A content-embedded correlation token (`◊meaCulpa`, a frontmatter UUID stamped on every
-Narradin-caused write and compared against the index on the next inbound event) was
-explored at length and rejected: it requires a permanent per-note frontmatter field,
-careful rotation-invariant bookkeeping, does not cover non-markdown files or renames, and
-solves nothing a properly idempotent check-then-act handler doesn't already solve on its
-own — see Decision Record B.18._
+_A content-embedded correlation-token approach was also explored and rejected — see
+Decision Record B.18 for the full comparison._
 
 _A `narradin_id` content sentinel was separately considered and rejected: renames carry
 no content to stamp, non-markdown files have no frontmatter, and `vault.modify` races
