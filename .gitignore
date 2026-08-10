@@ -46,11 +46,12 @@ coverage/
 !.env.example
 
 # Local Kilo state and configuration (may contain API keys / local-only
-# settings). Ignore everything under .kilo/ except the shared, non-secret
-# skill(s) explicitly tracked below. Revisit further selective tracking
-# (agents/commands/kilo.json) in a later stage.
+# settings, e.g. agent-manager.json). Ignore everything under .kilo/ except
+# the shared, non-secret skills and commands explicitly tracked below.
+# Revisit further selective tracking (agents/kilo.json) in a later stage.
 .kilo/*
 !.kilo/skill/
+!.kilo/command/
 
 # Local scratch artifacts (not part of the plugin or its docs)
 scratch/

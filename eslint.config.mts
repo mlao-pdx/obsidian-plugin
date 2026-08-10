@@ -16,6 +16,7 @@ export default defineConfig(
 		'package-lock.json',
 		'tsconfig.json',
 		'scripts/promote-fast-check.mjs',
+		'scripts/check-licenses.mjs',
 	]),
 	{
 		languageOptions: {
