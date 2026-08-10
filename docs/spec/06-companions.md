@@ -70,8 +70,10 @@ When a Companion's `is` changes to a different Companion concept, Narradin renam
 file to the new type's suffix — `Book A__manuscript.md` → `Book A__feedback.md` — via
 `fileManager.renameFile`, so Obsidian updates every link natively.
 
-- The rename registers its `old → new` pair in the pending-write set (§12.1). Renames are
-  the one loop-forming path and are never exempt.
+- The rename produces its own `vault.on('rename')` event, which is evaluated by the same
+  idempotent check-then-act logic as any other structural handler (§12.1): the type has
+  already changed and the filename now matches it, so the handler finds "already
+  correct" and takes no further action. No suppression mechanism is needed or exists.
 - Collisions abort with a notice, per Graceful Degradation. `for` remains correct.
 - If the type changes **away from** a Generated type, `narradin__generated` is stripped:
   the stamp is no longer true, and the namespace is Narradin's to keep honest.

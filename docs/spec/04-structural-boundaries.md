@@ -4,9 +4,15 @@
 
 ### 4.1 Definition
 
-A folder is a **structural boundary** when it directly contains a note carrying a
-**folder-level** Narrative `is` value. That note is the folder's Folder Note. Name
-matching between folder and note is **not** required and never has been.
+A folder is a **structural boundary** when it directly contains a note carrying one of
+the 5 fixed **folder-anchor** Narrative `is` values — `Realm`, `Series`, `Book`, `Act`,
+`Chapter` (§2.1, §2.2). That note is the folder's Folder Note. Name matching between
+folder and note is **not** required and never has been.
+
+A **transparent intermediate folder** — one with no note carrying a folder-anchor `is`
+— is simply not a candidate under this definition. No special-casing is needed: it
+carries no `is`, so it never matches, and the resolution walk (§4.2) simply passes
+through it.
 
 A Folder Note represents its folder to the folder's **parent**. It is never sorted among
 its own children; it is yielded first (§7.3).
@@ -24,13 +30,17 @@ precondition for resolving levels.
 
 Per folder:
 
-1. Collect all notes declaring a folder-level `is`.
+1. Collect all notes declaring one of the 5 fixed folder-anchor `is` values. A
+   transparent intermediate folder contributes zero candidates here — it simply
+   recurses through to its children without altering boundary status anywhere in the
+   chain.
 2. **Discard order violations** — any candidate at or above the parent boundary's level.
    If this empties the set, the folder is not a boundary; the discarded candidates form
    an Island (§4.5).
-3. **Nearest legal level wins.** Beneath a Realm, `Series` beats `Book`; beneath a
-   Series, `Book` beats `Header`. Skipping is tolerated, never preferred: if the author
-   bothered to say "Series", believe them.
+3. **Nearest legal level wins.** Beneath a Realm, `Series` beats `Book` beats `Act` beats
+   `Chapter`; beneath a Series, `Book` beats `Act` beats `Chapter`; and so on down the
+   full 5-anchor chain. Skipping is tolerated, never preferred: if the author bothered to
+   say "Series", believe them.
 4. **Still tied** — two or more candidates at the _same_ nearest legal level — apply the
    Universal Clash Resolution Protocol and fire the one-time **Two Kings** modal: there
    can be only one governing note per folder; the winner is named; the loser remains a
@@ -53,6 +63,15 @@ exists.
 Events that re-evaluate boundary status: note create, `is` change, note rename, folder
 rename. Deletion needs no name-sync handling.
 
+**The idempotency invariant.** Before firing a corrective rename, this table's handler
+checks whether the two names already match; if they do, it does nothing. A corrective
+rename's own resulting event — folder renamed, or note renamed — passes back through this
+same table and the same check, and finds "already matches," terminating without a second
+action. This is what makes the table safe to drive from both directions without any
+suppression mechanism: see Part 12 §12.1's "Idempotent Reactive Handlers," which uses
+this exact table, worked both directions (note-renamed-first and folder-renamed-first),
+as its canonical example rather than duplicating the full trace here.
+
 **Why this matters beyond tidiness.** Notebook Navigator ignores the `sort_index` of a
 _name-matched_ folder note. Once the names drift, NN begins including that note in manual
 reorders and rewrites its `sort_index` unpredictably — typically renumbering it into the
@@ -71,8 +90,11 @@ about, or merge legal nesting.
 
 ### 4.5 Islands
 
-An **Island** is a boundary declaring a level at or above its parent's — a Series folder
-note inside a Book, a Realm inside a Book.
+An **Island** is a boundary declaring one of the 5 fixed folder-anchor `is` values at or
+above the level of its nearest resolved ancestor anchor — a `Series` folder note
+appearing beneath a `Book`, or a second `Realm` appearing beneath any anchor. Transparent
+intermediate folders can never create a violation, since they carry no `is` and are
+never candidates at all (§4.1, §4.2).
 
 | Aspect                                      | Behaviour                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -30,24 +30,80 @@ flowchart TB
 - **Storm circuit breaker:** above a threshold of events per interval, abandon incremental
   processing and schedule a single batched subtree reindex.
 
-**Self-write suppression — a pending-write set.** Before any Narradin write, register
-`{ op, path, newPath?, expectedHash?, expiry }`. Inbound events matching an entry are
-dropped. Entries expire on a ~5 s timer so a failed write cannot wedge the gate.
+**Idempotent Reactive Handlers.** No self-write suppression mechanism exists anywhere in
+Narradin — not a pending-write set, not a content-embedded correlation token, nothing.
+Retired entirely (Decision Record B.18), replaced by one rule:
 
-- Renames register the `old → new` pair. This is the **only** case where suppression is a
-  correctness requirement rather than an optimisation, because folder ↔ folder-note sync is
-  the only path that forms an infinite loop.
-- Works for non-markdown files, which cannot carry a frontmatter sentinel.
-- Nothing is persisted — boot delta-sync reconciles after a crash, and ingest is idempotent.
-- **Deliberate exception:** the alias application pass is **not** suppressed. It rewrites
-  prose, mutating entity names inside `{...}` properties, which must be reindexed. Suppress
-  _structural_ self-writes (renames, `is`/`icon`/index/`narradin__*` injection); let
-  _content_ self-writes flow through the debouncer.
+> **Every reactive structural handler checks current actual state before acting. It
+> never reacts unconditionally to "an event happened."**
 
-_A `narradin_id` content sentinel was considered for this role and rejected: renames carry
+A handler built this way cannot loop, regardless of which side triggered it, because its
+own corrective action produces an event that is evaluated by the identical check and
+converges by finding "already correct." Idempotent Ingest (§1) already guarantees
+reprocessing any file yields an identical index; this rule is what extends that guarantee
+to renames and folder/folder-note sync, closing the one case the design previously
+carved out as an exception. There is no infinite-loop risk to guard against in the first
+place once a handler is check-then-act rather than unconditional — the loop only occurs
+if a handler fires blindly on every matching event without first asking "is this already
+true?"
+
+**The Vault Is Truth — sequencing rule.** A second, orthogonal principle governs _when_
+a write to the Canonical Index is permitted, distinct from the idempotency rule above:
+
+> **An index write is permitted only once the fact it describes is already true and
+> confirmed by the vault — via that action's own resulting event — never speculatively
+> ahead of a not-yet-confirmed write.**
+
+Initiating a corrective write is not the same as that write having happened. The
+Canonical Index may never assert a fact merely because Narradin has _started_ a write
+whose outcome isn't yet confirmed; it may assert the fact only once the vault's own event
+for that write arrives. This is The Vault Is Truth (§1) applied specifically to the
+timing of index commits, not just their content.
+
+**Canonical worked example: folder ↔ folder-note name sync (§4.3), both directions.**
+
+- **Note renamed first.** The Folder Note is renamed by the author. The name-sync
+  handler (§4.3) fires, checks whether the folder's name already matches the note's new
+  name — it does not — and issues a corrective folder rename. That rename produces its
+  own `vault.on('rename')` event. The handler fires again, checks whether the names now
+  match — they do — and stops. One corrective action, one no-op confirmation pass. No
+  suppression was needed at any point: the second pass didn't need to be silenced, it
+  needed to see the truth and agree with it.
+- **Folder renamed first.** The folder itself is renamed. Two things follow from this,
+  on different timelines:
+  - **Category A — already true, safe to write immediately.** Every note nested inside
+    the renamed folder has a new path prefix the instant the rename event fires — the
+    vault has already confirmed this fact. The Canonical Index bulk-updates the path
+    prefix for every such entry immediately; there is nothing speculative about it.
+  - **Category B — not yet true, must wait for its own confirmation.** Separately, the
+    name-sync handler checks whether this folder's own Folder Note's name still matches
+    the folder's new name. If it does not, the handler issues a corrective rename
+    request for that one note — but the Canonical Index does **not** yet update that
+    note's basename. It waits. Only when that corrective rename's own `vault.on('rename')`
+    event arrives does the index commit the new basename for that one entry. Meanwhile,
+    the bulk path-prefix update for every _other_, unrelated nested entry (Category A)
+    proceeds concurrently and is unaffected — the two are separate index-write timings,
+    not one atomic pass, because they rest on different confirmation states.
+  - The corrective rename's own resulting event then passes through the same
+    check-then-act handler, finds the names already match, and stops — exactly the
+    same convergence as the note-renamed-first direction, just triggered from the other
+    side.
+
+Both directions converge after exactly one corrective action plus one no-op confirmation
+pass, and at no point does the Canonical Index assert a fact the vault has not yet
+confirmed for itself.
+
+_A content-embedded correlation token (`◊meaCulpa`, a frontmatter UUID stamped on every
+Narradin-caused write and compared against the index on the next inbound event) was
+explored at length and rejected: it requires a permanent per-note frontmatter field,
+careful rotation-invariant bookkeeping, does not cover non-markdown files or renames, and
+solves nothing a properly idempotent check-then-act handler doesn't already solve on its
+own — see Decision Record B.18._
+
+_A `narradin_id` content sentinel was separately considered and rejected: renames carry
 no content to stamp, non-markdown files have no frontmatter, and `vault.modify` races
-`metadataCache`. `narradin__*` is retained for durable state — `fka`, `generated` — not for
-loop suppression._
+`metadataCache`. `narradin__*` is retained for durable state — `fka`, `generated` — not
+for loop suppression of any kind._
 
 ### 12.2 Event Semantics
 
@@ -73,8 +129,9 @@ vault** — a write here would re-enter Event Ingestion and loop.
 - **Note Properties.** Read through `MetadataPort` (§12.9) — structural metadata must be
   available before Content Projection exists (§9.0). The port's adapter wraps `metadataCache`; the
   frontmatter-only decision itself is unchanged (Appendix B §B.7 D2).
-- **Boundary resolution.** Resolves the hierarchy **top-down from each Realm root** (§4.2),
-  including Island detection.
+- **Boundary resolution.** Resolves the fixed 5-anchor hierarchy (Realm/Series/Book/
+  Act/Chapter, §2.2) **top-down from each Realm root** (§4.2), including Island
+  detection.
 - **Content Sequence.** Owns the traversal result (§7.5) and patches it on structural
   change. No Provider or Consumer ever walks the tree.
 - **Local Scope map.** For every Player, Plot, and Companion, caches the resolving
@@ -191,13 +248,13 @@ Current members: `narradin__fka`, `narradin__generated`, `narradin__ack`.
 `src/core/**` never imports `obsidian` or `dexie` at runtime. Five ports (`src/ports/`)
 form the seam between the domain algorithms above and the technologies that back them:
 
-| Port              | Wraps                                                                | Depended on by                                                                                     |
-| ----------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `MetadataPort`    | `metadataCache`                                                      | Canonical Index boundary resolution (§4.2) and Note Property reads (§12.3)                         |
-| `FileContentPort` | `vault.read` / `vault.cachedRead`                                    | Event Ingestion / Event Semantics Entity Property parsing (§12.1)                                  |
-| `PersistencePort` | the Dexie/IndexedDB schema (§12.3 "Database")                        | Canonical Index's boundary-resolution, Content Sequence traversal (§7.5), and scope-map algorithms |
-| `VaultWritePort`  | `vault.modify` / `rename` / `delete` + the pending-write set (§12.1) | Workers' write-execution step (§12.7), not their plan computation                                  |
-| `LoggerPort`      | `Vault.adapter` (`DataAdapter`) writes under `_narradin/logs/`       | Developer-diagnostics logging, opt-in, silent by default (Decision Record B.16)                    |
+| Port              | Wraps                                                          | Depended on by                                                                                     |
+| ----------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `MetadataPort`    | `metadataCache`                                                | Canonical Index boundary resolution (§4.2) and Note Property reads (§12.3)                         |
+| `FileContentPort` | `vault.read` / `vault.cachedRead`                              | Event Ingestion / Event Semantics Entity Property parsing (§12.1)                                  |
+| `PersistencePort` | the Dexie/IndexedDB schema (§12.3 "Database")                  | Canonical Index's boundary-resolution, Content Sequence traversal (§7.5), and scope-map algorithms |
+| `VaultWritePort`  | `vault.modify` / `rename` / `delete`                           | Workers' write-execution step (§12.7), not their plan computation                                  |
+| `LoggerPort`      | `Vault.adapter` (`DataAdapter`) writes under `_narradin/logs/` | Developer-diagnostics logging, opt-in, silent by default (Decision Record B.16)                    |
 
 **`LoggerPort`.** `log(level: LogLevel, message: string, meta?: Record<string,
 unknown>): void` — the only method. `LogLevel` is `trace | debug | info | warn |
@@ -285,7 +342,7 @@ flowchart LR
         P2 --> A1
         P2 --> A2
         P2 --> A3
-        D1([DECIDED pending write set with a short expiry])
+        D1([SUPERSEDED — see B.18 — DECIDED pending write set with a short expiry])
         P2 ==> D1
         E1(EXCEPTION the alias pass is not suppressed because it mutates entity names in properties)
         D1 --> E1
@@ -476,5 +533,79 @@ changes never break Consumer code. This does not reverse B.7's D5 (ports) or §1
 Provider-owns-its-cache rule — D1 above only extends the latter with a lifecycle; see also
 B.14, whose D1 (consolidate-then-commit) is a Canonical Index-side instance of the same
 "don't optimize/special-case until it hurts" philosophy._
+
+---
+
+## B.18 Self-Write Suppression Retirement
+
+**Chain:** I1 how to distinguish a Narradin-caused write's echo from a genuine external
+change → I2 when is it safe to write a fact to the Canonical Index. Reopens B.7's I1/D1
+(§12.1 above) — that Decision node is relabelled SUPERSEDED there per §B.12, rather than
+edited in place here.
+
+```mermaid
+flowchart TD
+    subgraph S1["I1: How to distinguish a Narradin caused write's echo from a genuine external change"]
+        I1{{How to distinguish a Narradin caused write's echo from a genuine external change}}
+        P1[Pending write set with path or hash plus expiry, the original section 12.1 design]
+        P2[Content embedded correlation token, a frontmatter meaCulpa UUID, explored at length]
+        P3[Idempotent check then act handlers, no suppression at all]
+        I1 --> P1
+        I1 --> P2
+        I1 --> P3
+        C1a(CON Requires predicting exact serialized byte content)
+        C1b(CON Timing dependent, entries expire on a short timer)
+        C1c(CON Does not generalize to bulk or frontmatter cases cleanly)
+        P1 --> C1a
+        P1 --> C1b
+        P1 --> C1c
+        C2a(CON Requires careful rotation invariant bookkeeping)
+        C2b(CON Permanent per note frontmatter field for every Narradin caused edit)
+        C2c(CON Does not cover non markdown files or renames)
+        C2d(CON Does not solve anything a properly idempotent handler does not already solve)
+        P2 --> C2a
+        P2 --> C2b
+        P2 --> C2c
+        P2 --> C2d
+        A3a(PRO The loop risk only exists for unconditional reactive handlers)
+        A3b(PRO Checking current state before acting converges in one extra no op pass regardless of event origin)
+        P3 --> A3a
+        P3 --> A3b
+        D1([DECIDED idempotent check then act handlers, no suppression at all])
+        P3 ==> D1
+    end
+    D1 -.-> I2
+    subgraph S2["I2: When is it safe to write a fact to the Canonical Index"]
+        I2{{When is it safe to write a fact to the Canonical Index}}
+        P2a[Speculatively, as soon as a corrective write is initiated]
+        P2b[Only once the vault has confirmed the fact via its own event]
+        I2 --> P2a
+        I2 --> P2b
+        C2e(CON Violates Vault Is Truth if the write fails or races)
+        P2a --> C2e
+        A2a(PRO The index never asserts anything not yet true)
+        P2b --> A2a
+        D2([DECIDED only once the vault confirms the fact via its own event])
+        P2b ==> D2
+    end
+```
+
+**Why the "renames are the one exception" premise didn't hold.** The original §12.1
+design (B.7's D1) framed renames as the sole correctness-critical case for suppression,
+because folder ↔ folder-note sync looked like the one path that could form an infinite
+loop. Working through concrete traces in both directions (§12.1's worked example) shows
+the loop only occurs if the reactive handler is _unconditional_ — fires without checking
+current state first. A check-then-act handler converges in one corrective action plus
+one no-op confirmation pass, with no suppression needed at all, in either direction. The
+loop premise itself doesn't hold once handlers are written correctly, so there was never
+a correctness-critical case left to carve out an exception for.
+
+**Two distinct principles, not one merged rule.** D1 above governs _whether a handler
+can loop_ (idempotent check-then-act, any handler, any trigger direction). D2 governs
+_when an index write is permitted_ (only once the vault has confirmed the fact via its
+own event) — a sequencing constraint that would matter even if no suppression question
+existed at all. Conflating them risks smuggling speculative index writes back in under
+cover of "the handler is idempotent so this is fine" — idempotency and sequencing are
+independently necessary and neither implies the other.
 
 ---

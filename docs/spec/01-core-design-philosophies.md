@@ -4,9 +4,13 @@
 
 Deviations must be documented at the point of deviation.
 
-- **Embrace the Chaos.** Make sense of the chaos; do not prevent the chaos the author
-  desires. Structural oddities are permitted so long as they never silently destroy or
-  corrupt work.
+- **Embrace the Chaos Around the Narrative Backbone.** Make sense of the chaos; do not
+  prevent the chaos the author desires. Structural oddities are permitted so long as
+  they never silently destroy or corrupt work. The narrative backbone itself — the five
+  fixed folder anchors (Realm, Series, Book, Act, Chapter) and the two fixed leaf types
+  (Heading, Scene) — is rigid by design and exempt from this chaos, precisely so
+  everything else can be chaotic without risk: intermediate folders, custom leaf types,
+  and note content remain entirely the author's to arrange (§2.1, §2.2).
 - **The Half-Fix Rule.** We don't break things you didn't break, but we may only
   half-fix things if you don't play along. The user has responsibilities; Narradin holds
   them accountable rather than restricting them.
@@ -30,8 +34,11 @@ Deviations must be documented at the point of deviation.
   And nothing ever crosses _into_ an Island from outside — reads or writes, reports or
   rewrites, without exception. This invariant is load-bearing for reasoning about the
   whole system.
-- **Order Constrains; Completeness Does Not.** Hierarchy levels must appear in
-  configured order. Only Realm is unskippable.
+- **Order Constrains; Completeness Does Not.** The five fixed folder anchors — Realm,
+  Series, Book, Act, Chapter — must appear in that order wherever they appear. **Only
+  Realm is unskippable;** any of the other four may be omitted. Transparent intermediate
+  folders (§2.2) carry no `is` and never participate in order checks — they are not
+  levels at all, just pass-throughs.
 - **Structure Errors Sever, They Do Not Delete.** A structural violation removes a
   subtree from compilation and outer reporting. It never removes notes from Narradin's
   awareness, and it is always reported.
@@ -56,8 +63,13 @@ Deviations must be documented at the point of deviation.
 - **Never Worse Than Manual.** No automated write may leave the vault in a state worse
   than a partial manual find-and-replace would have.
 - **Idempotent Ingest.** Reprocessing any file yields an identical index. This is what
-  lets loop suppression be a best-effort optimisation rather than a correctness
-  mechanism — with one exception (§12.1).
+  makes self-write suppression of any kind unnecessary, full stop — no exception. Every
+  reactive structural handler checks current actual state before acting rather than
+  reacting unconditionally to "an event happened," so a corrective action's own
+  resulting event converges by finding "already correct" (§12.1, "Idempotent Reactive
+  Handlers"). A second, orthogonal rule governs when a fact may be written to the
+  Canonical Index — never speculatively ahead of the vault confirming it — stated as its
+  own principle in §12.1 ("The Vault Is Truth" sequencing).
 
 ### 1.1 Universal Clash Resolution Protocol
 

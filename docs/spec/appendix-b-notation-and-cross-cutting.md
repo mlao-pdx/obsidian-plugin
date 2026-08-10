@@ -27,8 +27,10 @@ the file that holds it:
 | B.14 | RealmId Synchronization                 | `12-architecture.md`                       |
 | B.15 | In-Memory Cache Ownership and Lifecycle | `12-architecture.md`                       |
 | B.16 | Developer Logging and Metrics           | `appendix-b-notation-and-cross-cutting.md` |
+| B.17 | Narrative Hierarchy Structure           | `02-configuration-model.md`                |
+| B.18 | Self-Write Suppression Retirement       | `12-architecture.md`                       |
 
-**Next available number: B.17**
+**Next available number: B.19**
 
 ## Reading the graphs
 

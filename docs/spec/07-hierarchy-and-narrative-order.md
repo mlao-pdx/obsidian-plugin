@@ -6,26 +6,35 @@
 
 Along with `is`, the hierarchy is Narradin's steel thread.
 
-- The author defines an ordered list of Narrative levels.
-- Folder Levels are a contiguous prefix from the top.
-- Boundaries encountered on a downward walk must **descend in configured order**.
+- The narrative hierarchy is a **fixed** chain of 5 folder anchors, in mandatory order:
+  `Realm → Series → Book → Act → Chapter` (§2.1, §2.2). There is no author-defined list
+  — the chain is the same in every vault.
+- Every one of the 5 anchors is a Folder Level. `Heading` and `Scene` are the 2 fixed
+  Leaf Levels; any custom leaf type (§2.1) is a Leaf Level too, on equal footing.
+- Boundaries encountered on a downward walk must **descend in that fixed order**.
   Violations create Islands (§4.5).
 - **Only Realm is unskippable.** `Realm/Book A/` is valid with no Series.
-  `Realm/Series/Header/Scene` is valid with no Book. Order is constrained; completeness
-  is not.
-- Level meanings vary wildly and Narradin does not care: a Header may be a section,
-  prologue, dedication, act, or chapter; a leaf may be a chapter, scene, or beat.
+  `Realm/Series/Chapter/Scene` is valid with no Book or Act. Order is constrained;
+  completeness is not. Transparent intermediate folders (§2.2) carry no `is` and never
+  participate in this check at all — a downward walk passes through one exactly as if
+  it were not there.
+- Anchor meanings vary wildly and Narradin does not care what an author uses a `Chapter`
+  or `Act` folder to represent — the names are fixed, the intent behind them is the
+  author's.
 
-**Chaos Override.** Any note carrying a leaf-level `is` is a leaf note, full stop —
-name-matched to its folder or not, alone in its own folder or not. Leaf `is` values never
-create boundaries.
+**Chaos Override.** Any note carrying a leaf-level `is` — `Heading`, `Scene`, or any
+custom leaf type — is a leaf note, full stop — name-matched to its folder or not, alone
+in its own folder or not. Leaf `is` values never create boundaries, built-in or custom
+alike.
 
 ### 7.2 What Gets Traversed
 
 - **Notes** — only those carrying a valid Narrative `is` (Absolute Opt-In).
-- **Folders** — _all_ folders are descended into, marked or not. An unmarked folder is a
-  transparent container: it participates in sibling ordering (always Group A, since it
-  can carry no index), establishes no boundary, and yields no content.
+- **Folders** — _all_ folders are descended into, marked or not. A transparent
+  intermediate folder — one carrying no folder-anchor `is` — establishes no boundary
+  and yields no content of its own; it is ordered among its siblings exactly like a
+  folder that has no `folder_index` (§7.3), and its children are traversed by recursing
+  into it with the same algorithm.
 - **Excluded** — Islands (from outer traversal only), `_narradin`, and Generated
   Companions.
 
@@ -35,19 +44,35 @@ create boundaries.
 panes; folders cannot be manually sorted, files can. NN's drag-and-drop writes
 `sort_index` to files, interpolating between neighbours and renumbering wholesale
 (typically restarting near 1000) when interpolation fails. `folder_index` is manual and
-expected to be used sparingly — realistic for Books, Series, and some Headers; nobody
+expected to be used sparingly — realistic for Books, Series, and Acts; nobody
 hand-numbers beats.
 
-**Algorithm, per directory:**
+**Algorithm, per directory — leaves before subfolders, strictly:**
 
 1. **Yield the Folder Note first**, before anything else. It is not sorted among its
    children. Folder Notes are typically sparse dashboards, but they are the author's to
    fill and Narradin never skips them.
-2. **Group A — no `folder_index`.** Sorted by `sort_index`; missing defaults to `1`. Ties
-   resolve by Clash Resolution — which, absent NN custom sort, means _all_ of them.
-   Emitted **before** Group B.
-3. **Group B — has `folder_index`.** Sorted ascending. Ties → Clash Resolution.
-4. Yield leaf notes as encountered; recurse into folders as encountered.
+2. **Leaf notes, all of them, next.** Any note carrying a leaf-level `is` — `Heading`,
+   `Scene`, or a custom leaf type — is ordered by `sort_index` only; missing defaults to
+   `1`. Ties resolve by Clash Resolution — which, absent NN custom sort, means _all_ of
+   them. **Leaf notes never carry or consult `folder_index`** — it plays no role in
+   their position, ever.
+3. **Subfolders, all of them, after every leaf note has been yielded.** Ordered by
+   `folder_index` only, ascending; missing sorts last. Ties resolve by Clash Resolution.
+   **Subfolders never carry or consult `sort_index` for positioning** — a subfolder's
+   own Folder Note may carry a `sort_index` (NN writes one to every file except the
+   folder note when custom sort is enabled), but it is never read for this purpose.
+   This applies uniformly whether the subfolder carries a folder-anchor `is`, no `is` at
+   all (a transparent intermediate folder), or is itself an out-of-order Island — §4.5
+   governs whether its _contents_ are excluded from _outer_ traversal once recursed
+   into; the ordering algorithm here does not special-case any of that, it simply
+   assigns every subfolder a position among its siblings and recurses.
+4. **Leaves are yielded entirely before any subfolder is recursed into.** This is a
+   strict depth-first, leaves-before-children rule — every leaf note in a directory
+   appears in the traversal output before the first note from any subfolder of that
+   same directory, with no interleaving.
+5. Recurse into each subfolder, in the order established by step 3, applying this same
+   five-step algorithm to its contents.
 
 **Folder positioning.** A folder is positioned solely by the `folder_index` on its Folder
 Note. **A Folder Note's `sort_index` is ignored for positioning.**
@@ -57,71 +82,103 @@ Note. **A Folder Note's `sort_index` is ignored for positioning.**
 > rewrites that value, typically into the ~1000 range (§4.3). Honouring it would let a
 > cosmetic mismatch silently relocate an entire Book to the end of its Series.
 
-A folder with no `folder_index` sits in Group A at the default of `1` and resolves against
-its siblings by Clash Resolution.
+A folder with no `folder_index` sits at the default of `1` among other subfolders and
+resolves against its subfolder siblings by Clash Resolution — the same default-and-tie
+mechanism §1.1 already defines, applied here to `folder_index` rather than `sort_index`.
 
 **Why the default index is 1, not 0.** Notebook Navigator treats `0` as equivalent to
-null. Defaulting to `1` keeps Narradin aligned with NN. Note also that enabling custom
-sort on a folder in NN auto-populates `sort_index` on every file except the folder note.
+null. Defaulting to `1` keeps Narradin aligned with NN — for `sort_index` on leaf notes
+and `folder_index` on subfolders alike, each scoped strictly to its own item type per
+steps 2–3 above. Note also that enabling custom sort on a folder in NN auto-populates
+`sort_index` on every file except the folder note.
 
-**Consequence, by design:** un-indexed notes float to the top of their directory, visibly.
-A dedication with no index naturally precedes Book folders; an acknowledgements note gets
-`folder_index: 999` and sinks. Chaos is surfaced, not hidden.
+**Consequence, by design:** un-indexed leaf notes float to the top of the leaf group in
+their directory, visibly, and un-indexed subfolders float to the top of the subfolder
+group. A dedication with no index naturally precedes its siblings; an acknowledgements
+note gets `sort_index: 999` and sinks toward the end of the leaf group. Chaos is
+surfaced, not hidden.
 
 ```typescript
 // Requirement expressed as code. Not an implementation.
 function sortDirectory(items: NarradinItem[]): NarradinItem[] {
-    const a = items
-        .filter(i => i.folder_index == null)
+    const leaves = items
+        .filter(i => i.kind === 'leaf')
         .sort((x, y) => (x.sort_index ?? 1) - (y.sort_index ?? 1) || resolveClash(x, y));
-    const b = items
-        .filter(i => i.folder_index != null)
-        .sort((x, y) => x.folder_index - y.folder_index || resolveClash(x, y));
-    return [...a, ...b];  // folder note already yielded ahead of both
+    const subfolders = items
+        .filter(i => i.kind === 'subfolder')
+        .sort((x, y) => (x.folder_index ?? 1) - (y.folder_index ?? 1) || resolveClash(x, y));
+    return [...leaves, ...subfolders];  // folder note already yielded ahead of both
 }
 ```
 
 ### 7.4 Acceptance Fixtures
 
-Locked ground truth for the traversal engine.
+Locked ground truth for the traversal engine. Re-derived from scratch against the
+leaves-before-subfolders algorithm in §7.3 — do not compare against any earlier fixture
+set that interleaved leaf notes and folders at the same level.
 
-**Fixture 1**
+**Fixture 1 — leaves before subfolders, both indexed, and a leaf's stray `folder_index` ignored**
 
 ```
 Realm (folder)
   Realm.md               is [[A Realm]]   folder_index 1
   Series (folder)
     Series.md            is [[A Series]]  folder_index 1
-    Scene C.md           is [[A Scene]]   sort_index 23
-    Scene D.md           is [[A Scene]]   folder_index 2
+    Scene C.md            is [[A Scene]]   sort_index 23
+    Scene D.md            is [[A Scene]]   folder_index 2
     Book A (folder)
       Book A.md          is [[A Book]]    folder_index 3
       Scene A.md         is [[A Scene]]   sort_index 1   ctime 234
       Scene B.md         is [[A Scene]]   sort_index 1   ctime 123
-```
-
-Expected: `Realm.md`, `Series.md`, `Scene C`, `Scene D`, `Book A.md`, `Scene A`,
-`Scene B`.
-
-**Fixture 2** — as above, plus:
-
-```
     Book B (folder)
       Book B.md          is [[A Book]]    folder_index 2
       Scene E.md         is [[A Scene]]   sort_index 1
       Scene F.md         is [[A Scene]]   sort_index 2
 ```
 
-At Series level: Group A = `Scene C`. Group B = `Book B` (2), `Scene D` (2), `Book A` (3).
-`Book B` and `Scene D` tie at 2; fully-qualified natural sort gives `Book B` first.
+At the Series level, `Scene C` and `Scene D` are leaf notes — both yielded before either
+`Book A` or `Book B`, ordered by `sort_index` alone. `Scene D` carries a `folder_index`
+of `2` and no `sort_index` — a leaf note never consults `folder_index` (§7.3 step 2), so
+it defaults to `sort_index: 1` regardless, placing it **ahead of** `Scene C` (23), not
+between `Book B` and `Book A` as the stray value might suggest. `Book A` and `Book B`
+are subfolders — ordered by `folder_index` alone, with `Book B` (2) before `Book A` (3).
 
-Expected: `Realm.md`, `Series.md`, `Scene C`, `Book B.md`, `Scene E`, `Scene F`,
-`Scene D`, `Book A.md`, `Scene A`, `Scene B`.
+Expected: `Realm.md`, `Series.md`, `Scene D`, `Scene C`, `Book B.md`, `Scene E`,
+`Scene F`, `Book A.md`, `Scene A`, `Scene B`.
 
-> **Note.** When these fixtures were first walked by hand, folder notes were skipped and
-> Clash Resolution led with `ctime`, giving `Scene B, Scene A`. Both rules have since
-> changed. The values above reflect current rules and supersede the originals. Note also
-> that `ctime` is now decorative here: `Scene A.md` and `Scene B.md` resolve at step 1.
+**Fixture 2 — a transparent intermediate folder and a skipped level**
+
+```
+Realm (folder)
+  Realm.md               is [[A Realm]]   folder_index 1
+  Book A (folder)
+    Book A.md            is [[A Book]]    folder_index 1
+    WIP (folder, no is, no folder note — transparent)
+      Chapter 1 (folder)
+        Chapter 1.md      is [[A Chapter]]  folder_index 1
+        Scene G.md        is [[A Scene]]    sort_index 1
+      Scene H.md          is [[A Scene]]    sort_index 1
+```
+
+`Realm/Book A/` has no Series between them — Series is skipped, which is legal (only
+Realm is unskippable, §7.1). `WIP` carries no `is` and no folder note, so it is a
+transparent intermediate folder: it establishes no boundary of its own and is ordered
+among `Book A`'s subfolders exactly like any other subfolder (here, the only one, so it
+sorts by the `folder_index` default of `1`), then recursed into with this same
+algorithm. Inside `WIP`, `Scene H` is a leaf note yielded before the `Chapter 1`
+subfolder is recursed into, by the same leaves-before-subfolders rule — `WIP` is not
+itself a boundary, but the ordering algorithm treats its contents like any directory's.
+
+Expected: `Realm.md`, `Book A.md`, `Scene H`, `Chapter 1.md`, `Scene G`.
+
+> **Note.** These fixtures supersede an earlier set that mixed leaf notes and folders
+> into two priority groups (Group A/no-`folder_index`, Group B/has-`folder_index`)
+> applied uniformly to all directory children. That model is retired (Decision Record
+> B.3, Issue 5): leaves and subfolders no longer share one ordering pass at all — leaves
+> use `sort_index` exclusively, subfolders use `folder_index` exclusively, and every
+> leaf note precedes every subfolder, full stop. `ctime` remains decorative in Fixture
+> 1: `Scene A.md` and `Scene B.md` still resolve at Clash Resolution step 1 (natural
+> sort on the fully qualified name), never reaching step 2.
 
 ### 7.5 Content Sequence
 
@@ -166,7 +223,8 @@ A consumer skipping `research` companions filters on `companionType`; order is u
 ## B.3 Narrative Ordering
 
 **Chain:** I1 index property count → I2 clash resolution order → I3 lexicographic vs
-natural sort → I4 folder note emission.
+natural sort → I4 folder note emission → I5 do the two index properties apply uniformly
+or split strictly by leaf-vs-subfolder type.
 
 ```mermaid
 flowchart LR
@@ -234,6 +292,24 @@ flowchart LR
         P4b --> A4a
         D4([DECIDED yielded first])
         P4b ==> D4
+    end
+    D1 -.-> I5
+    subgraph S5["I5: Should sort_index and folder_index apply uniformly to all directory children, or split strictly by leaf-vs-subfolder type"]
+        I5{{Should sort_index and folder_index apply uniformly to all directory children, or split strictly by leaf-vs-subfolder type}}
+        P5a[Uniform: two priority groups, no-folder_index vs has-folder_index, applied to every child regardless of type]
+        P5b[Split strictly: leaf notes use sort_index only, subfolders use folder_index only, every leaf precedes every subfolder]
+        I5 --> P5a
+        I5 --> P5b
+        C5a(CON A leaf note that happens to carry a stray folder_index jumps into the folder priority group, mixing leaf and folder siblings unpredictably)
+        C5b(CON Fixed narrative hierarchy makes folder anchors and leaf types a closed, known-in-advance distinction, so there is no longer a reason to unify their ordering pass)
+        P5a --> C5a
+        P5a --> C5b
+        A5a(PRO A leaf note's position never depends on anything but sort_index, and a subfolder's position never depends on anything but folder_index)
+        A5b(PRO Matches the mental model authors already have from Notebook Navigator: separate panes, separate sort keys)
+        P5b --> A5a
+        P5b --> A5b
+        D5([DECIDED split strictly, leaves before subfolders])
+        P5b ==> D5
     end
 ```
 

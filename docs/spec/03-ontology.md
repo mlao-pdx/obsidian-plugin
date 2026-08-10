@@ -4,8 +4,11 @@
 
 Every note is classified by its `is` value into exactly one category:
 
-1. **Narrative** — the structural spine. Ordered into levels; a top prefix of them are
-   Folder Levels.
+1. **Narrative** — the structural spine. Five fixed folder anchors (Realm, Series, Book,
+   Act, Chapter), two fixed leaf types (Heading, Scene), and any number of
+   user-defined custom leaf types (§2.1). Folder anchors are always Folder Levels;
+   Heading, Scene, and every custom leaf type are always Leaf Levels — there is no
+   configuration surface that changes which is which.
 2. **Companion** — attached content; a subsection of a host Narrative note.
 3. **Player** — world entities. Scope-inheriting. May be an Entity Property subject.
 4. **Plot** — structural threads. Scope-inheriting, mechanically identical to Players.

@@ -18,7 +18,7 @@ text.
   click-to-open action fires on completion.
 - **`compile` property** — an array of concept links naming which `is` types to emit.
   - `["[[Some Prose]]"]` — the manuscript.
-  - `["[[A Scene]]", "[[A Header]]"]` — an outline from the dashboards.
+  - `["[[A Scene]]", "[[A Heading]]"]` — an outline from the dashboards.
   - `["[[Character]]"]` — a cast list (§8.4).
 - **Per-host order** — the host note first if matched, then its Companions in
   `compile`-array order. Content Sequence order governs across hosts.
