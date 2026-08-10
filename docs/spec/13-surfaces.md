@@ -8,8 +8,8 @@
 | -------------------------------- | ------------------------------------------------------------------------- |
 | Insert Element / Entity          | Create a valid note for a chosen concept in the current location.         |
 | Compile                          | Modal → background write to a Generated Companion.                        |
-| Insert POV Shift                 | Insert `{~◊pov=…}` at the cursor.                                         |
-| Insert Settings Shift            | Insert `{~◊settings=…}` at the cursor.                                    |
+| Insert POV Shift                 | Insert `{~pov=…}` at the cursor.                                          |
+| Insert Setting Shift             | Insert `{~setting=…}` at the cursor.                                      |
 | Cut to Outtake                   | Move selected prose to a collection note; leave a marker. `[OPEN Q-16c]`  |
 | Open Alias Manager               | Alias modal for the active Source Note.                                   |
 | Run Alias Pass                   | Force an immediate full pass.                                             |

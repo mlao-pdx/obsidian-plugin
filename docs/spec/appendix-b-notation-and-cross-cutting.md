@@ -9,28 +9,29 @@ depends on it_.
 Check here before assigning a new `B.N`. Every number currently in use, its title, and
 the file that holds it:
 
-| B.N  | Title                                   | File                                       |
-| ---- | --------------------------------------- | ------------------------------------------ |
-| B.1  | Boundary Identity                       | `04-structural-boundaries.md`              |
-| B.2  | Scope, Islands, and the Membrane        | `05-scope.md`                              |
-| B.3  | Narrative Ordering                      | `07-hierarchy-and-narrative-order.md`      |
-| B.4  | Where the Alias Ledger Lives            | `10-the-alias-manager.md`                  |
-| B.5  | Alias Replacement Safety                | `10-the-alias-manager.md`                  |
-| B.6  | Inline Property Grammar                 | `09-entity-properties.md`                  |
-| B.7  | Architecture                            | `12-architecture.md`                       |
-| B.8  | Compiler Output                         | `08-the-compiler.md`                       |
-| B.9  | POV as a Positional Value               | `16-views.md`                              |
-| B.10 | Load-Bearing Chains                     | `appendix-b-notation-and-cross-cutting.md` |
-| B.11 | Open Issues                             | `15-open-questions.md`                     |
-| B.12 | Maintaining This Appendix               | `appendix-b-notation-and-cross-cutting.md` |
-| B.13 | Editorial Property Grammar              | `09-entity-properties.md`                  |
-| B.14 | RealmId Synchronization                 | `12-architecture.md`                       |
-| B.15 | In-Memory Cache Ownership and Lifecycle | `12-architecture.md`                       |
-| B.16 | Developer Logging and Metrics           | `appendix-b-notation-and-cross-cutting.md` |
-| B.17 | Narrative Hierarchy Structure           | `02-configuration-model.md`                |
-| B.18 | Self-Write Suppression Retirement       | `12-architecture.md`                       |
+| B.N  | Title                                                      | File                                       |
+| ---- | ---------------------------------------------------------- | ------------------------------------------ |
+| B.1  | Boundary Identity                                          | `04-structural-boundaries.md`              |
+| B.2  | Scope, Islands, and the Membrane                           | `05-scope.md`                              |
+| B.3  | Narrative Ordering                                         | `07-hierarchy-and-narrative-order.md`      |
+| B.4  | Where the Alias Ledger Lives                               | `10-the-alias-manager.md`                  |
+| B.5  | Alias Replacement Safety                                   | `10-the-alias-manager.md`                  |
+| B.6  | Inline Property Grammar                                    | `09-entity-properties.md`                  |
+| B.7  | Architecture                                               | `12-architecture.md`                       |
+| B.8  | Compiler Output                                            | `08-the-compiler.md`                       |
+| B.9  | POV as a Positional Value                                  | `16-views.md`                              |
+| B.10 | Load-Bearing Chains                                        | `appendix-b-notation-and-cross-cutting.md` |
+| B.11 | Open Issues                                                | `15-open-questions.md`                     |
+| B.12 | Maintaining This Appendix                                  | `appendix-b-notation-and-cross-cutting.md` |
+| B.13 | Editorial Property Grammar                                 | `09-entity-properties.md`                  |
+| B.14 | RealmId Synchronization                                    | `12-architecture.md`                       |
+| B.15 | In-Memory Cache Ownership and Lifecycle                    | `12-architecture.md`                       |
+| B.16 | Developer Logging and Metrics                              | `appendix-b-notation-and-cross-cutting.md` |
+| B.17 | Narrative Hierarchy Structure                              | `02-configuration-model.md`                |
+| B.18 | Self-Write Suppression Retirement                          | `12-architecture.md`                       |
+| B.19 | Reclassifying pov and setting Out of the Lozenge Namespace | `09-entity-properties.md`                  |
 
-**Next available number: B.19**
+**Next available number: B.20**
 
 ## Reading the graphs
 

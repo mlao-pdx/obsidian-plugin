@@ -179,14 +179,14 @@ or the note body — origin is a field on the record (§9.9's `origin: 'frontmat
 `MentionProvider` is explicitly **derived** — a projection over `PropertyProvider`, link
 data, and plain-text scanning. Every mention is tagged by evidence kind:
 
-| Kind                                        | Source                                               |
-| ------------------------------------------- | ---------------------------------------------------- |
-| `entity-property-subject`                   | segment 0 of an Entity Property                      |
-| `entity-property-context`                   | a later segment that resolves to an entity           |
-| `entity-property-value`                     | an entity name inside a value                        |
-| `note-property-value`                       | `pov`, `settings`, or another reserved link property |
-| `wikilink-destination` / `wikilink-display` | body links                                           |
-| `plain-text`                                | normalised basename/alias occurrence (toggleable)    |
+| Kind                                        | Source                                              |
+| ------------------------------------------- | --------------------------------------------------- |
+| `entity-property-subject`                   | segment 0 of an Entity Property                     |
+| `entity-property-context`                   | a later segment that resolves to an entity          |
+| `entity-property-value`                     | an entity name inside a value                       |
+| `note-property-value`                       | `pov`, `setting`, or another reserved link property |
+| `wikilink-destination` / `wikilink-display` | body links                                          |
+| `plain-text`                                | normalised basename/alias occurrence (toggleable)   |
 
 `entity-property-context` is what lets `{Frodo+Samwise+argument=…}` count as _evidence
 Samwise appears_ while the progression still belongs to Frodo.

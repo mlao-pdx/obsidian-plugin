@@ -33,7 +33,7 @@ Chapter`. Only Realm is mandatory; any of the other four may be skipped (§2.2).
   - Companion — Prose (default suffix `__prose`)
   - Player — Character, Object, Lore, Location, Other
   - Plot — Plot, Thread, Theme, Arc
-  - System — Outtake, POV, Settings
+  - System — Outtake
 
 ### 2.2 Hierarchy
 
@@ -59,6 +59,11 @@ Chapter`. Only Realm is mandatory; any of the other four may be skipped (§2.2).
 configured property) and `folder_index`. Both are semantically mandatory; only their
 names are user-configurable. See §9.0 ("Three Kinds of File Property Key") for the full
 three-way file-property taxonomy.
+
+**Positional values** — Configurable keys `pov` and `setting`. Neither is mandatory (a
+note or host group may have no POV/setting at all, §16.4) — unlike `sort_index`/
+`folder_index`, only the _name_ is reconfigurable while presence is optional, not
+semantically mandatory.
 
 **Companions** — suffix separator (default `__`); per-type suffixes; **companion type
 order**. No companion type is mandatory; `__prose` ships as a default, nothing more.

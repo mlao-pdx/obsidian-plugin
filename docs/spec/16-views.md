@@ -90,7 +90,7 @@ ends of a thread are Realm-bounded by construction.
 Traversal Scope, per §8.4's two-axis rule: Local Scope for eligibility, Narrative
 Traversal Scope for inclusion. Ordering and appendix as specified there.
 
-### 16.4 POV and Settings — Positional Values
+### 16.4 POV and Setting — Positional Values
 
 POV and setting are **positional**: they hold from their declaration until the next one. A
 note-level property is simply the declaration in force at line 1.
@@ -99,25 +99,27 @@ note-level property is simply the declaration in force at line 1.
 
 ```yaml
 pov: "[[Vimes]]"
-settings: ["[[The Watch House]]", "[[The Shades]]"]
+setting: ["[[The Watch House]]", "[[The Shades]]"]
 ```
 
-Positional override — a system marker taking effect from its Position onward:
+Positional override — a Reserved Key taking effect from its Position onward (§9.2's
+Subject Resolution Step 0):
 
 ```
-{~◊pov=[[Colon]]}
-{~◊settings=[[The Shades]]}
+{~pov=[[Colon]]}
+{~setting=[[The Shades]]}
 ```
 
-`settings` remains a **list** in both forms. Its plurality is no longer about sequence —
+`setting` remains a **list** in both forms. Its plurality is no longer about sequence —
 positional overrides handle that — but about genuine simultaneity: a scene set in two places
 at once, such as a scrying bowl showing the Shades from the Watch House. A positional
 override replaces the entire active set.
 
-Both are inserted by command (§13.1), `◊` being untypeable by design, and freely editable
-thereafter.
+Both are inserted by command (§13.1), and freely editable thereafter — `pov`/`setting` are
+Configurable keys (§9.0), not lozenge-prefixed System concepts, so they carry no
+untypeable-character constraint the way `◊outtake` does.
 
-**Resolution.** POV and settings resolve across the **host group** — a Narrative note
+**Resolution.** POV and setting resolve across the **host group** — a Narrative note
 together with all its Companions — not per file. The value at any Position is the last
 declaration at or before it, walking the group in Content Sequence order (§7.5): the host
 note first, then Companions by configured type order.
@@ -140,7 +142,11 @@ not.
 **Mentions and evidence.** Both generate `note-property-value` mentions — or
 `entity-property-value` for positional overrides — and count as **strong appearance
 evidence**. A POV character appears in their scene whether or not they are named in the
-prose. A mention is attributed to the **segment** it governs, not the whole note.
+prose. A mention is attributed to the **segment** it governs, not the whole note. The
+inline form (`{~pov=…}`) never falls through to an ordinary Entity Property resolution
+path: §9.2's Subject Resolution Step 0 intercepts it as a Reserved Key before entity
+matching runs, which is exactly what lets `note-property-value` and
+`entity-property-value` share one mechanism regardless of origin.
 
 **The Rashomon Report.** Multiple POV segments in one note are **counted and reported, never
 judged.** Narradin cannot distinguish head-hopping (a craft weakness the author wants
@@ -169,7 +175,7 @@ A system marker whose subject is `◊outtake`:
 ```
 
 - Hidden, cursor-skipped. A pointer, not content.
-- **Contexts are captured values, not literal words** — the POV and settings _as they were
+- **Contexts are captured values, not literal words** — the POV and setting _as they were
   at the moment of the cut_, resolved at the marker's Position (§16.4). On restore, Narradin
   compares them against the current values and warns if the scene has moved on.
 - Contexts naming entities generate `entity-property-context` mentions, but the `!` modifier

@@ -19,13 +19,13 @@ Four types exist, distinguished by opener:
 
 Two kinds of metadata, distinguished by **subject**, not by syntax.
 
-|             | **Note Property**                               | **Inline Property**                               |
-| ----------- | ----------------------------------------------- | ------------------------------------------------- |
-| Subject     | the note it sits in                             | an entity (or discussion) named in the key        |
-| Location    | frontmatter only                                | frontmatter **or** body                           |
-| Cardinality | one per key per note                            | many per key per note                             |
-| Owner       | Narradin (reserved keys) or author              | the author                                        |
-| Examples    | `is`, `for`, `pov`, `sort_index`, `narradin__*` | `{Frodo+midpoint=…}`, `Frodo: realizes the truth` |
+|             | **Note Property**                        | **Inline Property**                               |
+| ----------- | ---------------------------------------- | ------------------------------------------------- |
+| Subject     | the note it sits in                      | an entity (or discussion) named in the key        |
+| Location    | frontmatter only                         | frontmatter **or** body                           |
+| Cardinality | one per key per note                     | many per key per note                             |
+| Owner       | Narradin (reserved keys) or author       | the author                                        |
+| Examples    | `is`, `for`, `sort_index`, `narradin__*` | `{Frodo+midpoint=…}`, `Frodo: realizes the truth` |
 
 `is: [[A Scene]]` describes _this note_. `Frodo: realizes the truth` describes _Frodo_
 and merely happens to live here.
@@ -73,7 +73,7 @@ grouped by the taxonomy above:
 | Category                     | Keys                                                                |
 | ---------------------------- | ------------------------------------------------------------------- |
 | Configurable / structural    | `is`, `for`, `compile`, `folder_index`, `sort_index`, `narradin__*` |
-| Configurable / narrative     | `pov`, `settings`                                                   |
+| Configurable / narrative     | `pov`, `setting`                                                    |
 | Configurable / Obsidian core | `aliases`, `tags`, `cssclasses`, `icon`                             |
 | Configurable / ecosystem     | `excalidraw*` (prefix match)                                        |
 
@@ -176,6 +176,15 @@ nothing for `!`).
 
 Ordered, first match wins:
 
+0. **Reserved Key** — segment 0, after modifier stripping, matches a configured
+   Reserved Key name (§9.0) exactly (post Key Normalisation). The property is a
+   positional override of that Configurable key (e.g. `pov`, `setting`) rather
+   than an Entity Property; it is handled by that key's own resolution logic
+   (§16.4 for `pov`/`setting`) and is never sent through the remaining steps
+   below, never reported as unresolved, and never collision-checked against
+   entity names — the same reclaim-via-settings escape hatch documented for
+   `is`, `for`, `tags`, etc. applies if an author's entity is genuinely named
+   after a Reserved Key.
 1. **Player or Plot entity** — segment 0, normalised per Key Normalisation below, matched
    against basenames, aliases, and stale `narradin__fka` values within the property
    host's **Reference-Valid Scope** (§5.5) — its own resolved Realm Scope. Matching
@@ -188,6 +197,10 @@ Ordered, first match wins:
 
 **Unresolved is never dropped.** Silence is how a typo hides for six months while an arc
 quietly loses three beats.
+
+**See §16.4** for the positional-override resolution logic that Step 0 hands off to for
+`pov`/`setting`; §16.4 cross-references back here for why the inline form (`{~pov=…}`)
+never falls through to Unresolved.
 
 **Reference-Valid Scope.** An Inline Property may name or target any entity within the
 host note's own **Reference-Valid Scope** (§5.5) — its resolved Realm Scope (§5.2/§5.3).
@@ -221,16 +234,21 @@ an apostrophe, or a dash.
 
 #### Two Classes of System Marker
 
-Both are machine-written. They differ in what happens afterwards.
+Both are machine-written. They differ in what triggers the write.
 
-| Class              | Examples            | Authored by                    | Edited by author                    |
-| ------------------ | ------------------- | ------------------------------ | ----------------------------------- |
-| **Machine-only**   | `◊outtake`          | a command, as bookkeeping      | No — Narradin owns the relationship |
-| **Author-invoked** | `◊pov`, `◊settings` | a command, as an authoring act | Yes — authorial content             |
+| Class                        | Examples                 | Triggered by                              | Author's role                                                                                          |
+| ---------------------------- | ------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Machine-only bookkeeping** | `◊outtake`               | a command, automatically (Cut to Outtake) | None — Narradin computes the value; hand-editing corrupts a relationship Narradin owns                 |
+| **Author decision**          | `◊accepted`, `◊rejected` | an explicit Accept/Reject choice          | The author picks which marker gets written; the marker itself is still never hand-typed or hand-edited |
 
-Machine-only markers are pointers Narradin maintains; hand-editing one corrupts a
-relationship Narradin owns. Author-invoked markers are the author's content in a syntax
-Narradin supplies — the command exists only because `◊` cannot be typed.
+Both are machine-written; the lozenge namespace is always Narradin's to write, never the
+author's to type, for every marker without exception. The two classes differ only in
+**what triggers the write**: `◊outtake` is written automatically as a side effect of a
+structural command, with no author decision point of its own beyond invoking that
+command; `◊accepted`/`◊rejected` are written at the exact moment the author makes an
+explicit Accept or Reject choice — the decision is authorial, the marker syntax is not.
+Both remain usable in **either** frontmatter or inline contexts, same as every other
+System key.
 
 ### Key Normalisation
 
@@ -298,11 +316,11 @@ distinct in structure from the other three.
 **Syntax.**
 
 ```
-{#Speaker+ISO-Timestamp+Context1+Context2…|Speaker+ISO-Timestamp+Context…|…[|◊ACCEPTED+ISO-Timestamp|◊REJECTED+ISO-Timestamp] = BeforeValue|AfterValue}
+{#Speaker+ISO-Timestamp+Context1+Context2…|Speaker+ISO-Timestamp+Context…|…[|◊accepted+ISO-Timestamp|◊rejected+ISO-Timestamp] = BeforeValue|AfterValue}
 ```
 
-Each turn in the thread is a multi-key entry. The final optional key may be `◊ACCEPTED`
-or `◊REJECTED` to mark resolution.
+Each turn in the thread is a multi-key entry. The final optional key may be `◊accepted`
+or `◊rejected` to mark resolution.
 
 **Examples.**
 
@@ -315,19 +333,19 @@ Unresolved edit:
 Resolved (accepted):
 
 ```
-{#Alice+2026-08-07T16:13:35Z+This is passive|Bob+2026-08-07T16:14:00Z+Good catch|◊ACCEPTED+2026-08-07T16:14:30Z = walked slowly|ran quickly}
+{#Alice+2026-08-07T16:13:35Z+This is passive|Bob+2026-08-07T16:14:00Z+Good catch|◊accepted+2026-08-07T16:14:30Z = walked slowly|ran quickly}
 ```
 
 Multi-turn discussion with rejection:
 
 ```
-{#Alice+2026-08-07T16:13:35Z+Too passive here|Bob+2026-08-07T16:13:50Z+I see it now|Alice+2026-08-07T16:14:05Z+Let's speed it up|◊REJECTED+2026-08-07T16:14:10Z = walked slowly|ran quickly}
+{#Alice+2026-08-07T16:13:35Z+Too passive here|Bob+2026-08-07T16:13:50Z+I see it now|Alice+2026-08-07T16:14:05Z+Let's speed it up|◊rejected+2026-08-07T16:14:10Z = walked slowly|ran quickly}
 ```
 
 **Structure.**
 
 - **Turns:** Each `|`-separated key is one turn in a discussion thread.
-  - Subject = speaker name (or `◊ACCEPTED`/`◊REJECTED` for resolution).
+  - Subject = speaker name (or `◊accepted`/`◊rejected` for resolution).
   - First context = ISO 8601 timestamp.
   - Remaining contexts = comment text (rendered as lines, `+` joins them).
 - **Values:** `|`-separated array.
@@ -343,13 +361,13 @@ _Unresolved:_
 - After text shown in prose, dimmed and boxed to indicate pending edit.
 - Accept/Reject buttons, plus a Delete action.
 - **Delete on an unresolved edit is not itself a resolution.** It prompts the
-  user to choose ◊ACCEPTED or ◊REJECTED first. Choosing Cancel at that
+  user to choose ◊accepted or ◊rejected first. Choosing Cancel at that
   prompt aborts the deletion entirely; the edit remains unresolved and
   untouched.
 - Choosing a resolution at that prompt both resolves and deletes in one
   step: the `{#...}` expression is removed from the source entirely,
   leaving behind exactly the text that resolution would have rendered
-  (the after-value for ◊ACCEPTED, the before-value for ◊REJECTED) — with
+  (the after-value for ◊accepted, the before-value for ◊rejected) — with
   no marker, no icon, no expandable thread. This differs from a plain
   Accept/Reject (below), which keeps the collapsed thread and icon in
   source for audit history.
@@ -370,8 +388,8 @@ _After Reject:_
 
 **Resolution markers.**
 
-- `◊ACCEPTED+Timestamp` → edit accepted, after value applied.
-- `◊REJECTED+Timestamp` → edit rejected, before value retained.
+- `◊accepted+Timestamp` → edit accepted, after value applied.
+- `◊rejected+Timestamp` → edit rejected, before value retained.
 - Both are system markers (lozenge), timestamped, audit-trail preserving.
 
 ### 9.6 Context Vocabulary
@@ -493,7 +511,7 @@ interface EntityPropertyRecord {
 }
 
 interface EditorialTurn {
-    speaker: string;      // raw, as typed — "Alice", "◊ACCEPTED", "◊REJECTED"
+    speaker: string;      // raw, as typed — "Alice", "◊accepted", "◊rejected"
     timestamp: string;    // ISO 8601, as typed, not validated for correctness
     comments: string[];   // remaining contexts, one per line
 }
@@ -503,7 +521,7 @@ interface EditorialPropertyRecord {
     position: Position;
     turns: EditorialTurn[];
     resolution: 'pending' | 'accepted' | 'rejected';
-    resolvedAt?: string;         // timestamp from the ◊ACCEPTED/◊REJECTED turn, if present
+    resolvedAt?: string;         // timestamp from the ◊accepted/◊rejected turn, if present
     values: string[];            // [0] = before, [1] = after; may extend beyond 2 in future
 }
 ```
@@ -668,6 +686,8 @@ Editorial Properties (`{#...}`) are a distinct subsystem, not a grammar tweak on
 other three modifiers — hence their own numbered decision record rather than a fifth
 fork of B.6.
 
+**Chain:** I1 how to encode editorial discussion threads → I2 resolution-marker casing.
+
 ```mermaid
 flowchart LR
     subgraph S1["I1: How to encode editorial discussion threads"]
@@ -699,6 +719,22 @@ flowchart LR
         D1([DECIDED self-contained multi-key threads with timestamps and lozenge resolution markers])
         P2 ==> D1
     end
+    D1 -.-> I2
+    subgraph S2["I2: Should resolution markers be upper or lower case"]
+        I2{{Should resolution markers be upper or lower case}}
+        P2a[Keep ACCEPTED and REJECTED upper case]
+        P2b[Lower case, matching every other lozenge marker]
+        I2 --> P2a
+        I2 --> P2b
+        C2a(CON Inconsistent with lower case outtake, the only other shipped System marker)
+        P2a --> C2a
+        A2a(PRO Uniform casing across the entire lozenge namespace, with no stated rationale for an exception)
+        A2b(PRO Visual audit trail distinction, if wanted, belongs in rendering not syntax)
+        P2b --> A2a
+        P2b --> A2b
+        D2([DECIDED accepted and rejected, lower case])
+        P2b ==> D2
+    end
 ```
 
 **Reasoning:** The vault is the source of truth. By embedding the entire discussion (all
@@ -706,5 +742,49 @@ speakers, timestamps, comments, before/after values, resolution status) in a sin
 braced expression, Narradin ensures the note is intelligible in any context (raw
 Markdown, external editor, after Narradin is abandoned). The trade-off is density in
 source, but Narradin's UI handles all the rendering work.
+
+---
+
+## B.19 Reclassifying `pov` and `setting` Out of the Lozenge Namespace
+
+This decision reopens B.6 §I3/D3 above — the lozenge-prefix decision for system-concept
+addressing — narrowing its scope: `pov` and `setting` were never valid `is` values and
+should never have been addressed through the lozenge namespace at all.
+
+```mermaid
+flowchart TD
+    subgraph S1["I1: Should pov and setting live in the lozenge namespace"]
+        I1{{Should pov and setting live in the lozenge namespace}}
+        P1[Keep them as System concepts, addressed via lozenge]
+        P2[Reclassify as Configurable keys, no lozenge]
+        I1 --> P1
+        I1 --> P2
+        C1(CON Neither is ever a valid is value; no note declares is POV or is Settings)
+        C2(CON Frontmatter-only Note Property framing directly contradicts the inline lozenge form shown in Part 16)
+        P1 --> C1
+        P1 --> C2
+        A1(PRO Matches the Reserved Keys table in Section 9.0, which already filed them under Configurable, not System)
+        A2(PRO Frees the Author-invoked row of Two Classes of System Marker for a cleaner example, accepted slash rejected)
+        A3(PRO Configurable keys are already documented as usable in frontmatter or inline via Reserved Keys, so no new resolution logic is required)
+        P2 --> A1
+        P2 --> A2
+        P2 --> A3
+        D1([DECIDED pov and setting are Configurable keys, no lozenge, usable in frontmatter or inline])
+        P2 ==> D1
+    end
+```
+
+**Why Configurable beat System.** Neither `pov` nor `setting` was ever a genuine ontology
+member — no note anywhere declares `is: [[POV]]` or `is: [[Settings]]`, unlike `Outtake`,
+which the outtake collection note actually declares (§16.5). Filing them under System
+forced a frontmatter-only Note Property framing (§9.0) that the spec's own Part 16
+inline-override examples directly contradicted — a contradiction with no resolution
+mechanism, not a stylistic inconsistency. Configurable removes the contradiction for
+free: Reserved Keys already document usability in frontmatter or inline (§9.0), so no new
+resolution logic was needed beyond Subject Resolution's new Step 0 (§9.2) — the
+Reserved-Key pre-check that already applies uniformly to `is`, `for`, `tags`, and every
+other Configurable key. The lozenge namespace, meanwhile, keeps its original purpose
+intact: reserving a collision-free space for concepts Narradin alone writes, with
+`◊outtake` and the newly-lowercased `◊accepted`/`◊rejected` as its only remaining members.
 
 ---
