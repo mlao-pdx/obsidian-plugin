@@ -50,9 +50,8 @@ true?"
 **The Vault Is Truth — sequencing rule.** A second, orthogonal principle governs _when_
 a write to the Canonical Index is permitted, distinct from the idempotency rule above:
 
-> **An index write is permitted only once the fact it describes is already true and
-> confirmed by the vault — via that action's own resulting event — never speculatively
-> ahead of a not-yet-confirmed write.**
+> **The Canonical Index cannot assert a fact about the vault's state without first
+> receiving an Obsidian event confirming that fact is true in the vault.**
 
 Initiating a corrective write is not the same as that write having happened. The
 Canonical Index may never assert a fact merely because Narradin has _started_ a write
@@ -231,13 +230,19 @@ Current members: `narradin__fka`, `narradin__generated`, `narradin__ack`.
 
 ### 12.8 Pacing
 
-| Signal                                        | Target                                                                                                                    |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Entity Property parse after last keystroke    | 300–500 ms                                                                                                                |
-| Metadata / structural change                  | ~150 ms                                                                                                                   |
-| Hierarchy rebuild (coalesced, subtree-scoped) | ~250 ms                                                                                                                   |
-| Boot delta-sync                               | chunked, yielding to main thread                                                                                          |
-| Alias application pass                        | 15-minute floor; window-blur trigger; **immediate** on collision, on Local Scope change with pending `fka`, or on command |
+Concrete timing targets for Entity Property parse latency, metadata/structural change
+reaction, and hierarchy rebuild latency are deliberately not specified here. Per the
+project's `no_speculative_baselines` constraint, real-world measurement against actual
+vault sizes and usage patterns sets the baseline for each; refactoring for speed happens
+once a felt slowdown is measured, not ahead of it. This is the same discipline B.15
+already establishes for Provider caching (§12.4/§12.9): a staged lifecycle that starts
+simple and only optimizes once a real, measured bottleneck appears — applied here to
+parsing and rebuild pacing rather than cache shape.
+
+| Signal                 | Target                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Boot delta-sync        | chunked, yielding to main thread                                                                                          |
+| Alias application pass | 15-minute floor; window-blur trigger; **immediate** on collision, on Local Scope change with pending `fka`, or on command |
 
 ### 12.9 Ports and the Core Boundary
 
