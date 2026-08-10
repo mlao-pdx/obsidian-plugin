@@ -41,10 +41,11 @@ Per folder:
    `Chapter`; beneath a Series, `Book` beats `Act` beats `Chapter`; and so on down the
    full 5-anchor chain. Skipping is tolerated, never preferred: if the author bothered to
    say "Series", believe them.
-4. **Still tied** — two or more candidates at the _same_ nearest legal level — apply the
-   Universal Clash Resolution Protocol and fire the one-time **Two Kings** modal: there
-   can be only one governing note per folder; the winner is named; the loser remains a
-   valid Narrative note for traversal but does not govern the folder.
+4. **Multiple candidates at the same nearest legal level** — the Universal Clash
+   Resolution Protocol (§1.1) applies and resolves deterministically: two notes in the
+   same folder cannot share a fully qualified name, so the ascending natural-sort step
+   always decides. There can be only one governing note per folder; the winner governs,
+   the loser remains a valid Narrative note for traversal but does not govern the folder.
 
 ### 4.3 Name Synchronisation
 

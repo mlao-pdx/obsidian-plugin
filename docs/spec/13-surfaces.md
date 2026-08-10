@@ -32,7 +32,7 @@ A single block may invoke several views. Full schema deferred. `[OPEN Q-5]`
 | ------------------------------- | ---------------------------------------------------------------------------- |
 | `_narradin/`                    | Concept notes created by settings migration (§2.4).                          |
 | `_narradin/log.md`              | Every notice Narradin has issued, plus every compile.                        |
-| `_narradin/structure-issues.md` | Islands, Two Kings conflicts, orphans.                                       |
+| `_narradin/structure-issues.md` | Islands, orphans.                                                            |
 | `_narradin/conflicts.md`        | Alias ambiguities, blocked assignments, failed flushes, replacement reports. |
 | `_narradin/settings-history/`   | Configuration snapshots.                                                     |
 
