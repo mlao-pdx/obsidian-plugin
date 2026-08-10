@@ -37,8 +37,13 @@ architecture-boundary rules (e.g. `core_purity_rule` from `12-architecture.md` /
 - [Part 11: Element Insertion](11-element-insertion.md) — Making valid notes trivial to create under Absolute Opt-In.
 - [Part 12: Architecture](12-architecture.md) — The layered event-driven pipeline (Event Catcher through Consumers/Workers), idempotent reactive handlers, the Vault-Is-Truth index-write sequencing rule, and pacing. Includes Decision Record B.7 Architecture and B.18 Self-Write Suppression Retirement.
 - [Part 13: Surfaces](13-surfaces.md) — Commands, codeblocks, and `_narradin` contents exposed to the user.
-- [Part 14: Deferred](14-deferred.md) — Deliberately parked features (e.g. version control/git), with reasoning preserved.
+- [Part 14: Deferred](14-deferred.md) — Deliberately parked features (e.g. outtake lifecycle), with reasoning preserved.
 - [Part 15: Open Questions](15-open-questions.md) — Outstanding questions and what they block. Includes Decision Record B.11 Open Issues.
 - [Part 16: Views](16-views.md) — Progressions, Setups & Payoffs, cast lists, POV, outtake markers, anchor cascade, icon registry, and report chrome. Includes Decision Record B.9 POV as a Positional Value.
+- [Part 17: Version Control (Git)](17-version-control.md) — Vault-wide local
+  versioning, the Alias Manager's back-out mechanism, the release/progress tagging
+  model, the semver-based version tag grammar, and Companions for format
+  divergence. Includes Decision Records B.20 Git Feature Shape, B.21 Restore
+  Semantics, B.22 Author Tagging Model, and B.23 Version Tag Grammar.
 - [Appendix A: Design Decisions Considered and Rejected](appendix-a-rejected-decisions.md) — Flat table of rejected designs and why, recorded so they aren't relitigated.
 - [Appendix B: Notation and Cross-Cutting Decisions](appendix-b-notation-and-cross-cutting.md) — The IBIS graph legend ("Reading the graphs"), B.10 Load-Bearing Chains (decisions spanning multiple Parts), B.12 Maintaining This Appendix, and B.16 Developer Logging and Metrics.

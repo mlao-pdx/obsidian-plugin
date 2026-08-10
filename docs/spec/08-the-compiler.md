@@ -177,9 +177,15 @@ flowchart LR
         P3a --> C3b
         A3a(PRO git already answers tags branches and restore)
         P3b --> A3a
-        D3([DECIDED no versioning git is deferred but is the answer])
+        D3([SUPERSEDED — see B.20 — DECIDED no versioning git is deferred but is the answer])
         P3b ==> D3
     end
 ```
+
+**I3 is superseded.** Git's presence is no longer deferred — it is fully specified in
+Part 17, where B.20 (Git Feature Shape) decides the vault-wide repository shape that
+now versions this output alongside everything else in the vault. The substantive
+decision above still holds (no dedicated compiler-level versioning; the compiler defers
+to git) — only the "deferred" framing is stale.
 
 ---

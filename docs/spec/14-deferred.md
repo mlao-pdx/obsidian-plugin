@@ -4,21 +4,8 @@
 
 Parked deliberately, with reasoning preserved so it isn't relitigated.
 
-### Version Control (git)
-
-The real answer to compile history, editorial snapshots, and undo for destructive
-overwrites. Sketch:
-
-- Git operations scoped to Narradin's **Realm Scopes** (§5.5) rather than the whole
-  vault, matching git self-containment being per-Realm (§4.6).
-- Author-triggered **tags** marking a delivered state.
-- **Restore a single file as of a tag.**
-- **Branching** for edition management from one manuscript: print, e-book, and audio. Audio
-  diverges — `"You are serious?" He laughed.` becomes `[laughing] "You are serious?"` — and
-  that divergence needs somewhere to live other than a duplicated folder tree.
-- Conventional **semver** for draft numbering.
-
-**Consequence while deferred:** compiled output has no history.
+> **Version control (git)** — promoted out of Deferred; see
+> [Part 17: Version Control (Git)](17-version-control.md).
 
 ### Other Deferred Features
 

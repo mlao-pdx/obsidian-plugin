@@ -6,6 +6,12 @@
 text, not plain-text mentions. This engine closes that gap for tracked entities, and never
 leaves the vault worse than a partial manual find-and-replace.
 
+> **Requires Git.** Alias Manager cannot be enabled unless Git version control
+> (Part 17) is enabled — it is the feature's back-out mechanism. Every pass is
+> bracketed by an auto-generated pre-rename and post-rename commit+tag (§17.1, §17.4).
+> Disabling Git while Alias Manager is on disables both, after flushing any
+> outstanding `narradin__fka` backlog (§10.7) — behind a confirmation modal.
+
 ### 10.1 Note Sets
 
 **Source Notes** — notes whose basename and aliases are tracked and propagated. Configured
