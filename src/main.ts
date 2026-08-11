@@ -11,7 +11,8 @@ export default class NarradinPlugin extends Plugin {
 
 		// Wired here so it exists before any future core/service constructor
 		// needs it injected; reads settings live, so no re-wiring is needed
-		// when the user flips the Diagnostics toggle (§12.9, LoggerPort).
+		// when the user flips the Diagnostics toggle. See LoggerPort
+		// (docs/spec/12-architecture.md §12.9).
 		this.loggerAdapter = new ObsidianLoggerAdapter(this.app, () => this.settings);
 		this.loggerAdapter.log('info', 'Narradin loaded', { version: this.manifest.version });
 

@@ -1,7 +1,9 @@
 import obsidianmd from 'eslint-plugin-obsidianmd';
+import tsdoc from 'eslint-plugin-tsdoc';
 import globals from 'globals';
 import prettier from 'eslint-config-prettier';
 import { globalIgnores, defineConfig } from 'eslint/config';
+import tsdocSingleRemarks from './eslint-rules/tsdoc-single-remarks.ts';
 
 export default defineConfig(
 	globalIgnores([
@@ -46,6 +48,17 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		files: ['**/*.ts'],
+		plugins: {
+			tsdoc,
+			local: { rules: { 'tsdoc-single-remarks': tsdocSingleRemarks } },
+		},
+		rules: {
+			'tsdoc/syntax': 'error',
+			'local/tsdoc-single-remarks': 'error',
+		},
+	},
 	{
 		files: ['src/core/**/*.ts', 'src/ports/**/*.ts'],
 		rules: {

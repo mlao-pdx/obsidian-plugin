@@ -5,6 +5,9 @@ particular technology. Each port is a plain TypeScript interface with
 **zero imports from `obsidian` or `dexie`** — that is the entire point of
 this directory.
 
+See `docs/dev/tsdoc-conventions.md` for the doc-comment format (`@see`/
+`@remarks`) used on the interfaces below.
+
 ## Why
 
 `src/core` (the domain algorithms: boundary resolution, Content Sequence

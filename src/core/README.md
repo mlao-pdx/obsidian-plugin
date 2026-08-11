@@ -37,4 +37,5 @@ or `dexie` (or their subpaths) fails `npm run lint` / CI — never suppress
 this rule with `eslint-disable`.
 
 See `docs/spec/12-architecture.md` §12.9 and `src/ports/README.md` for the
-full port/adapter boundary rationale.
+full port/adapter boundary rationale. See `docs/dev/tsdoc-conventions.md` for
+the doc-comment format used throughout this codebase.

@@ -27,5 +27,5 @@
       "@ports/*": ["./src/ports/*"]
     }
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "types/**/*.d.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts", "eslint-rules/**/*.ts", "types/**/*.d.ts"]
 }

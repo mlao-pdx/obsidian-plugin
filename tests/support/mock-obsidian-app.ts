@@ -6,7 +6,7 @@
  * `"main": ""`) — there is no real implementation to load in tests. Tests
  * substitute this module for the real one via:
  *
- *   vi.mock('obsidian', () => import('../support/mock-obsidian-app'));
+ * `vi.mock('obsidian', () => import('../support/mock-obsidian-app'));`
  *
  * Keep this intentionally small: cover only what `main.ts`/`settings.ts`
  * currently touch (`addRibbonIcon`, `addStatusBarItem`, `addCommand`,

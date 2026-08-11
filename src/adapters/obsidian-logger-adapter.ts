@@ -3,7 +3,10 @@ import type { LoggerPort, LogLevel } from '@ports/logger-port';
 import { formatLogLine, shouldLog } from './logger-format';
 
 /**
- * Default `_narradin` folder path (§2.3, `docs/spec/02-configuration-model.md`).
+ * Default `_narradin` folder path.
+ *
+ * @see docs/spec/02-configuration-model.md §2.3
+ * @remarks
  * The Configuration Model's full settings (Part 2) are not built yet, so
  * this is a constant rather than a read of a user setting; once that
  * settings surface exists, wire it through here instead of hardcoding.
@@ -22,15 +25,19 @@ export interface ObsidianLoggerSettings {
 }
 
 /**
- * Obsidian-backed `LoggerPort` adapter (Decision Record B.16). Owns the
- * enabled/level checks, formatting, single-backup rotation, and the vault
- * file writes — via `Vault.adapter` (`DataAdapter`), not `Vault.create`/
- * `Vault.modify`, so the plain-text log file never triggers a
- * `vault.on('modify')` event or gets treated as an indexed note.
+ * Obsidian-backed `LoggerPort` adapter. Owns the enabled/level checks,
+ * formatting, single-backup rotation, and the vault file writes — via
+ * `Vault.adapter` (`DataAdapter`), not `Vault.create`/`Vault.modify`.
  *
  * Redaction of vault-derived content is the *caller's* responsibility (see
  * `LoggerPort`); this adapter never inspects `message`/`meta` for vault
  * content.
+ *
+ * @see docs/spec/appendix-b-notation-and-cross-cutting.md §B.16
+ * @remarks
+ * Writing via `Vault.adapter` instead of `Vault.create`/`Vault.modify`
+ * means the plain-text log file never triggers a `vault.on('modify')`
+ * event or gets treated as an indexed note.
  */
 export class ObsidianLoggerAdapter implements LoggerPort {
 	private readonly logsFolderPath: string;
@@ -39,16 +46,22 @@ export class ObsidianLoggerAdapter implements LoggerPort {
 
 	/**
 	 * Serializes `writeLine()` calls so concurrent `log()` calls can never
-	 * race on rotation — e.g. two calls both seeing the file at/over the
-	 * cap and both calling `rotate()`, where the second `rename()` targets
-	 * a file the first already moved away.
+	 * race on rotation.
+	 *
+	 * @remarks
+	 * E.g. two calls both seeing the file at/over the cap and both calling
+	 * `rotate()`, where the second `rename()` targets a file the first
+	 * already moved away.
 	 */
 	private writeQueue: Promise<void> = Promise.resolve();
 
 	constructor(
 		private readonly app: App,
 		/**
-		 * Read live so settings changes take effect on the next call
+		 * Live settings accessor.
+		 *
+		 * @remarks
+		 * Read so that settings changes take effect on the next call
 		 * without needing to re-wire this adapter.
 		 */
 		private readonly getSettings: () => ObsidianLoggerSettings,

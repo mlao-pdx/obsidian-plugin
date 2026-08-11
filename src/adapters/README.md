@@ -6,6 +6,9 @@ where `obsidian` (and, later, `dexie`) runtime imports are allowed — the
 `src/core/**` and `src/ports/**` (see `src/core/README.md`#enforcement,
 `src/ports/README.md`).
 
+See `docs/dev/tsdoc-conventions.md` for the doc-comment format (`@see`/
+`@remarks`) used throughout this directory.
+
 ## Current adapters
 
 | Adapter                 | Implements   | Wraps                                                   |
