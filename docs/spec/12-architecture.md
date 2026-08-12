@@ -124,33 +124,58 @@ vault** — a write here would re-enter Event Ingestion and loop.
 - **Note Properties.** Read through `MetadataPort` (§12.9) — structural metadata must be
   available before Content Projection exists (§9.0). The port's adapter wraps `metadataCache`; the
   frontmatter-only decision itself is unchanged (Appendix B §B.7 D2).
-- **Boundary resolution.** Resolves the fixed 5-anchor hierarchy (Realm/Series/Book/
-  Act/Chapter, §2.2) **top-down from each Realm root** (§4.2), including Island
-  detection.
+- **Boundary resolution.** Resolves the fully generic narrative hierarchy (§2.2, any
+  Narrative concept, arbitrary depth) **top-down from each Realm root** (§4.2). No
+  ranking, no order validation, no severance detection — nothing structural to detect
+  anymore (Decision 4; Islands are retired, §4.5).
 - **Content Sequence.** Owns the traversal result (§7.5) and patches it on structural
   change. No Provider or Consumer ever walks the tree.
 - **Local Scope map.** For every Player, Plot, and Companion, caches the resolving
   Narrative entity (§5.5). Emits scope deltas, which drive alias flushes (§10.7).
 - **Indexed Scope.** Every Narradin Scope note gets a Canonical Index row (§5.5); Orphan
-  Scope notes get one too, with `realmId: null` (§4.5).
-- **Database.** One per vault: `narradin-{app.appId}-v{schemaVersion}`. Every row carries an
-  indexed `realmId`; blast-radius enforcement is a mandatory predicate on every action
-  query. A headless-orphan Island (§4.5) never acquires a `realmId` and therefore never
-  becomes a row at all — it is absent from the index by construction, not filtered out of
-  it. Realms are **not** physically separated — nested Realms put a row in two at once,
-  Realm moves would force migrations, and cross-Realm operations would fan out. This schema
-  is the adapter behind `PersistencePort` (§12.9); the boundary-resolution, traversal, and
-  scope-map algorithms above depend on that interface, not on Dexie directly — the
-  database choice itself is unchanged (Appendix B §B.7 D4).
+  Scope notes get one too (§5.5's Orphan Scope, subtraction-defined, independent of
+  Islands).
+- **Database.** One per vault: `narradin-{app.appId}-v{schemaVersion}`. **No per-row
+  `realmId` column** (Decision 5 — retires B.14, RealmId Synchronization, entirely; see
+  Decision Record B.7's reopened I4/new-I). The column's original justification —
+  "one indexed predicate, testable in one place" — depended on every row belonging to
+  exactly one Realm, a property nested Realms deliberately break: a row inside a nested
+  Realm genuinely belongs to more than one Realm Scope at once (its own, and every
+  outer Realm containing it). Realm membership is instead **computed on demand**: an
+  on-demand, bounded upward walk from an anchor note (§5.2), implemented **once**,
+  inside this Canonical Index's own synchronous API below — never re-implemented ad hoc
+  by a Provider or Consumer, preserving the existing "no Provider or Consumer ever walks
+  the tree" rule (§7.5) even though the walk is computed live rather than cached.
+  **A boundary-node-level Realm-ancestry cache was also proposed and rejected**: the
+  walk's actual cost is bounded by path depth, not vault size — a keyed in-memory lookup
+  per step, sub-millisecond even in a deliberately adversarial ~30-segment-deep worst
+  case — so any caching layer at any granularity is premature optimization the
+  project's own `no_speculative_baselines` discipline (§12.8, already exercised in
+  B.15) already argues against. **Bulk operations** (full reindex, full-Realm compile)
+  use the existing single top-down traversal (§4.2/§7.3) — computing every note's
+  ancestry once, incrementally, reusing each parent's resolved result for its children —
+  not N independent per-note walks; no new design is needed for that path. Realms are
+  still **not** physically separated — one database per vault, unchanged (Appendix B
+  §B.7 D4) — but the reasoning is reinforced rather than merely retained: the
+  now-normal cross-Realm query pattern (nested Realms are visible from outside, §5.3)
+  makes the original "cross-Realm fan-out" CON against per-Realm databases even more
+  decisive than when it was first argued. This schema is the adapter behind
+  `PersistencePort` (§12.9); the boundary-resolution, traversal, and scope-map
+  algorithms above depend on that interface, not on Dexie directly.
 - **Disposable.** The database is a cache. Rebuildable, never authoritative.
 - **Synchronous API** (shape, not contract): `getPath(id)`, `getId(path)`,
   `getContentSequence(scopeId?)`, `getScopeOwner(entityId)`,
   `getEntitiesInScope(narrativeId, category?)`, `getPreChangeScope(id)`. Method names are
   unchanged code-facing identifiers (out of scope for this docs pass); in prose, each
   resolves or returns a **Local Scope** (§5.5) — `getScopeOwner` returns the Narrative
-  entity a note's Local Scope resolves to, `getEntitiesInScope` returns the entities whose
-  Local Scope matches, and `getPreChangeScope` returns the pre-change resolved Local Scope
-  described in §12.2.
+  entity a note's Local Scope resolves to via the on-demand bounded ancestor walk
+  described above, `getEntitiesInScope` returns the entities whose Local Scope
+  **is an ancestor of, equal to, or a descendant of** the queried Narrative entity — not
+  strict equality — so that an entity whose own Local Scope resolves to a Realm nested
+  inside the queried anchor is correctly included when queried from that outer anchor
+  (this is what makes Compile Scope's and the Alias Manager's reach into nested Realms,
+  §5.1/§5.3, actually resolve correctly), and `getPreChangeScope` returns the pre-change
+  resolved Local Scope described in §12.2.
 - **Emits** `HierarchyUpdated`, `ScopeUpdated`.
 
 ### 12.4 Content Projection
@@ -201,7 +226,10 @@ locate the text it must fix.
 masking, word boundaries. One code path finds a name and rewrites it, so discovery and
 replacement can never disagree.
 
-**Respects Islands absolutely.** A mention inside an Island is never visible outside it.
+**Respects Realm boundaries per the Membrane Rule.** A mention inside a nested Realm is
+visible from its containing Realm outward (§5.3) but never the reverse — the Mention
+Index follows the same unconditional containment as everything else; there is no
+Island-shaped exclusion left to apply here.
 
 ### 12.6 The `narradin__*` Namespace
 
@@ -216,7 +244,10 @@ Raw YAML remains visible in source mode and in the all-properties view, and `nar
 keys are **not** suppressed from property autocomplete. Power users may have good reasons to
 touch them, at their own risk.
 
-Current members: `narradin__fka`, `narradin__generated`, `narradin__ack`.
+Current members: `narradin__fka`, `narradin__generated`, `narradin__ack`. **No new
+member is added for Decision 6.** `◊status` is a lozenge-prefixed System Key (§9.2),
+not a `narradin__*` frontmatter property; `do_not_rename` is a plain Configurable key
+(§9.0). Neither belongs in this namespace, and this list is unchanged by this rewrite.
 
 ### 12.7 Application Layer — Consumers and Workers
 
@@ -294,6 +325,10 @@ keeps the §12.8 pacing targets achievable lives in Event Ingestion's event queu
 Canonical Index's coalesced rebuild logic (§12.1, §12.3) — it is orchestration-layer responsibility, not
 something a port interface can or should enforce.
 
+**`StatusOverlayProvider` needs no sixth port.** Its frontmatter reads and writes
+(§12.10) are fully served by the existing `MetadataPort`/`VaultWritePort` pair — stated
+here to pre-empt the question before Part 12's growing Provider roster suggests one.
+
 **Providers are port-and-adapter in one, for their Consumers.** To their Consumers
 (Application Layer), a Provider's canonical cache + query methods + change events
 function as a **port** — a stable contract Consumers depend on without knowing how it is
@@ -308,6 +343,45 @@ already, so they were never bound by the core-purity rule (§12.9, `src/core/REA
 Consequence: a Provider's internal cache shape is not swappable the way `MetadataPort`'s
 Obsidian-vs-fake adapter is. This is intentional, not an oversight — see Decision Record
 B.15.
+
+### 12.10 `StatusOverlayProvider` and `◊status`
+
+A new, note-type-agnostic Content Projection Provider (Decision 6, Decision Record B.25).
+**No new Port is needed** — the existing `MetadataPort`/`VaultWritePort` pair suffices
+for everything below, pre-empting the question before it is asked.
+
+**Registration.** A single call: a contributing module registers once with
+`StatusOverlayProvider` — status code, icon, color/background, and guidance text.
+`HierarchyProvider` is the **first consumer**, registering the (Decision 6) order
+advisory. A contributing module never touches the Icon Registry (§16.7) directly;
+`StatusOverlayProvider` forwards **only** the icon portion, under that status code, into
+the Icon Registry's existing "status indicators" registrant category — that category
+already exists in §16.7's text; only its write-path is new. Guidance-text storage is
+**explicitly left open** — possibly its own registry, possibly a plain internal map; not
+decided during this rewrite (§15).
+
+**Write.** Resolves `icon`/`background` frontmatter from `◊status`'s **last entry**
+(§9.2's "owner-scoped append/remove" class) — or the plain default if `◊status` is
+empty — and writes it via `VaultWritePort`. This applies **vault-wide, to both folder
+notes (as the folder's own tree slot) and ordinary notes alike** — not just to
+structural boundaries.
+
+**Guard.** Writes only if the note's current `icon`/`background` match a recognized
+value: the plain default, or any registered status's own icon/color pairing. Never
+overwrites an unrecognized value — that is an author customization — and falls back to
+the health report/log only for that one note.
+
+**Author-configurability.** `background`/color are **never** author-configurable via any
+Narradin settings surface, for any registrant — Narradin-owned channels, full stop. Only
+`icon` is ever exposed, via the Icon Registry's existing per-Realm override picker
+(§2.3, §16.7).
+
+**Surface.** A new command (§13.1), available only when the active note's `◊status` is
+non-empty, opens a modal listing the **full** status stack — not just the currently
+displayed entry. Note Toolbar integration relies on command-availability-driven
+show/hide (a fixed warning-colored button that Note Toolbar omits when the command is
+unavailable) — not on any conditional-styling capability Note Toolbar would otherwise
+need.
 
 ---
 
@@ -426,13 +500,47 @@ consequences, not their outcomes. Note Properties are still read from `metadataC
 `PersistencePort` are adapters over those same unchanged choices. The only new thing is
 the seam between them and the core algorithms that consume them (§12.9)._
 
+**Reopened — I6: given nested Realms, is `realmId`-equality still the blast-radius
+enforcement mechanism (Decision 5).**
+
+```mermaid
+flowchart LR
+    subgraph S6["I6: Given nested Realms, is realmId-equality still the blast-radius enforcement mechanism"]
+        I6{{Given nested Realms, is realmId-equality still the blast-radius enforcement mechanism}}
+        P6a[Keep realmId-equality as the predicate — old mechanism, superseded]
+        P6b[On-demand bounded ancestor walk via the existing synchronous API]
+        P6c[A boundary-node-level Realm-ancestry cache, computed once and kept in sync]
+        I6 --> P6a
+        I6 --> P6b
+        I6 --> P6c
+        C6a(CON Depended on every row belonging to exactly one Realm, a property nested Realms deliberately break)
+        P6a --> C6a
+        A6a(PRO The database-topology conclusion, one database per vault, is untouched — if anything the now-normal cross-Realm query pattern makes the original cross-Realm-fan-out CON against per-Realm databases even more decisive)
+        P6b --> A6a
+        C6b(CON Premature optimization: the walk's actual cost is bounded by path depth not vault size, sub-millisecond even in an adversarial ~30-segment-deep worst case, so no caching layer at any granularity earns its write-time/sync-risk cost — the same no_speculative_baselines discipline B.15 already exercises)
+        P6c --> C6b
+        D6([DECIDED on-demand bounded ancestor walk])
+        P6b ==> D6
+    end
+    D4 -.-> I6
+```
+
+_D6 does not reverse D4 — the one-database-per-vault conclusion stands and is
+reinforced, not reversed (see §12.3's rewritten "Database" bullet). What changes is only
+the blast-radius *predicate*: `realmId`-equality is retired in favor of the on-demand
+walk (Decision 5); no Decision node above needs relabeling, because the predicate was
+always an Argument attached to D4, not a Decision of its own._
+
 ---
 
 ## B.14 RealmId Synchronization
 
 **Chain:** extends B.7's I4/D4 (one database per vault with a `realmId` column) — this
-record does not reopen _whether_ Realms are physically separated, only _when_ a
-`realmId` write is safe to commit.
+record originally covered only _when_ a `realmId` write is safe to commit. **This
+record's entire premise no longer applies** (Decision 5): nested Realms break the
+mutual-exclusivity property a per-row `realmId` column depended on, so there is no
+`realmId` write left to sequence at all. Both Decision nodes below are relabelled
+SUPERSEDED in place, per §B.12's one permitted edit.
 
 ```mermaid
 flowchart LR
@@ -448,7 +556,7 @@ flowchart LR
         A2(PRO Matches the existing boot time delta sync chunked yielding pattern consolidation before write was already implicit)
         P2 --> A1
         P2 --> A2
-        D1([DECIDED Canonical Index consolidates and resolves realmId in memory before a single atomic Dexie transaction])
+        D1([SUPERSEDED — see I3/D3 — DECIDED Canonical Index consolidates and resolves realmId in memory before a single atomic Dexie transaction])
         P2 ==> D1
     end
     subgraph S2["I2: What happens when a Realm itself moves forcing a bulk realmId rewrite across a subtree"]
@@ -463,19 +571,30 @@ flowchart LR
         A4(PRO Dexie transactions are already atomic and non blocking a bigger transaction is quantitative not qualitative)
         P4 --> A3
         P4 --> A4
-        D2([DECIDED no special casing bulk realmId rewrites are an ordinary transaction])
+        D2([SUPERSEDED — see I3/D3 — DECIDED no special casing bulk realmId rewrites are an ordinary transaction])
         P4 ==> D2
         M1(MITIGATION revisit if real world usage later shows this is disruptive no evidence yet that it is a problem)
         D2 --> M1
     end
     D1 -.-> I2
+    D2 -.-> I3
+    subgraph S3["I3: Given no per-row realmId column, how does the Canonical Index resolve Realm-ancestry and orphan status at all"]
+        I3{{Given no per-row realmId column, how does the Canonical Index resolve Realm-ancestry and orphan status at all}}
+        P5[On-demand bounded upward walk from an anchor note, computed inside the Canonical Index's own synchronous API]
+        I3 --> P5
+        D3([DECIDED on-demand bounded walk — see 12.3's rewrite and B.7's I6 rather than re-deriving the reasoning here])
+        P5 ==> D3
+    end
 ```
 
-_D1 and D2 do not supersede B.7's D4 — the dotted arrow marks that D1's consolidate-then-
-commit mechanism forced I2 (the Realm-move case) to be reasoned through explicitly, not
-that the one-database-per-vault, `realmId`-column schema (D4) changed. `PersistencePort`
-still never receives a write until `realmId` is known; Realm moves are still an ordinary,
-if larger, transaction against that same schema._
+_D1 and D2 do not supersede B.7's D4 — the one-database-per-vault, `realmId`-column
+schema itself was already reasoned through there and is untouched by this
+supersession (see B.7's new I6, which retires only the `realmId`-equality predicate,
+not D4's topology conclusion). What this record's own premise loses is narrower: the
+write-ordering mechanics D1/D2 designed around — consolidate-then-commit, ordinary-
+transaction bulk moves — no longer apply because there is no `realmId` write to order
+in the first place. I3/D3 replaces both with the on-demand bounded walk (Decision 5),
+cross-referencing §12.3's rewrite rather than re-deriving the reasoning here._
 
 ---
 
@@ -608,5 +727,99 @@ own event) — a sequencing constraint that would matter even if no suppression 
 existed at all. Conflating them risks smuggling speculative index writes back in under
 cover of "the handler is idempotent so this is fine" — idempotency and sequencing are
 independently necessary and neither implies the other.
+
+---
+
+## B.25 The Status Overlay Mechanism
+
+**Chain:** I1 how does Narradin surface a structural/health advisory on the note itself,
+not just in a report → I2 how do multiple simultaneous concerns resolve to one displayed
+icon → I3 how is author customization protected → I4 where does the icon/color binding
+live → I5 should status/health state ever be represented as an Obsidian tag instead of
+a lozenge property.
+
+```mermaid
+flowchart LR
+    subgraph S1["I1: How does Narradin surface a structural or health advisory on the note itself, not just in a report"]
+        I1{{How does Narradin surface a structural or health advisory on the note itself, not just in a report}}
+        P1a[Leave it to reports only, no on-note surface]
+        P1b[A generalized status property plus overlay provider, any note, not just folder notes]
+        I1 --> P1a
+        I1 --> P1b
+        C1a(CON A report is easy to miss and does not put the signal where the author is already looking)
+        P1a --> C1a
+        A1a(PRO Generalizes to any future health check, not just the order advisory that motivated it)
+        P1b --> A1a
+        D1([DECIDED status property plus StatusOverlayProvider, generalized to any note])
+        P1b ==> D1
+    end
+    D1 -.-> I2
+    subgraph S2["I2: How do multiple simultaneous concerns resolve to one displayed icon"]
+        I2{{How do multiple simultaneous concerns resolve to one displayed icon}}
+        P2a[Severity ranking]
+        P2b[Recency — last-appended wins]
+        I2 --> P2a
+        I2 --> P2b
+        C2a(CON Requires Narradin to judge which of the author's problems matters more, against Count and Report Never Judge)
+        P2a --> C2a
+        A2a(PRO Simplest non-judgmental resolution rule available)
+        P2b --> A2a
+        D2([DECIDED recency, last entry governs display])
+        P2b ==> D2
+    end
+    D2 -.-> I3
+    subgraph S3["I3: How is author customization protected"]
+        I3{{How is author customization protected}}
+        P3a[Always overwrite icon and background unconditionally]
+        P3b[Guard against a recognized-value set before writing]
+        I3 --> P3a
+        I3 --> P3b
+        C3a(CON Would silently clobber an author's own icon or background customization)
+        P3a --> C3a
+        A3a(PRO Only writes if current icon/background match a recognized value, plain default or any registered status's own pairing; otherwise falls back to report/log for that note)
+        P3b --> A3a
+        D3([DECIDED guard against a recognized-value set, never overwrite an unrecognized value])
+        P3b ==> D3
+    end
+    D3 -.-> I4
+    subgraph S4["I4: Where does the icon or color binding live"]
+        I4{{Where does the icon or color binding live}}
+        P4a[Each contributing module writes its own icon binding into the Icon Registry directly]
+        P4b[StatusOverlayProvider is the sole writer into the Icon Registry, forwarding only the icon portion]
+        I4 --> P4a
+        I4 --> P4b
+        C4a(CON Multiple direct writers into one registry risks divergent conventions and duplicate bindings)
+        P4a --> C4a
+        A4a(PRO One call site per contributing module, StatusOverlayProvider forwards icon-only under the status code, background/color never touches the registry)
+        P4b --> A4a
+        D4([DECIDED StatusOverlayProvider is the sole writer, icon only, contributing modules never touch the registry directly])
+        P4b ==> D4
+    end
+    D4 -.-> I5
+    subgraph S5["I5: Should status/health state ever be represented as an Obsidian tag instead of a lozenge property"]
+        I5{{Should status/health state ever be represented as an Obsidian tag instead of a lozenge property}}
+        P5a[Yes, tags for machine-owned status state too]
+        P5b[No — lozenge properties only for machine-owned state; tags remain a guidance option for author-owned booleans elsewhere, §9.0]
+        I5 --> P5a
+        I5 --> P5b
+        C5a(CON Tags lack the lozenge namespace's deliberate typing friction, so machine-owned state would become trivially, accidentally disturbable)
+        P5a --> C5a
+        A5a(PRO Preserves the lozenge namespace's collision-free, author-cannot-accidentally-type guarantee for every machine-owned marker, `◊status` included)
+        P5b --> A5a
+        D5([DECIDED no — machine-owned state stays lozenge-only, Decision 8])
+        P5b ==> D5
+    end
+```
+
+**Why recency over severity.** A severity ranking would require Narradin to decide that
+one structural concern outranks another — exactly the judgment Count and Report, Never
+Judge (Part 1) exists to avoid. Recency is mechanically simple, requires no ranking
+table to maintain as new status codes are added, and is honest about what it is: the
+most recently observed thing, not the most important thing.
+
+**Background/color are never author-configurable, for any registrant.** This is stated
+here because it is a consequence of I3's guard, not a separate issue: allowing per-
+registrant background customization would reopen exactly the "which write is
+recognized" ambiguity the guard exists to close.
 
 ---

@@ -59,9 +59,14 @@ Every tag — release or progress — requires the author to confirm or adjust a
 
 ### 17.5 Scope Picker
 
-A tree UI (Realm → Series → Book → Act → Chapter → Leaf), prepopulated from the active
-note's narrative path. The author may truncate upward — dropping Act, Chapter, or
-Leaf — to broaden the tag's scope; never forced to drill down to leaf depth.
+A tree UI, prepopulated from the active note's narrative path and defaulting to the
+active note's own level. The picker **walks upward** from there, listing each ancestor
+boundary in turn; the author may truncate upward — dropping any number of the deepest
+confirmed levels — to broaden the tag's scope. Because the hierarchy is now fully
+generic and arbitrary-depth (§2.2), the picker caps its **visible** window at roughly
+four levels at a time, with an expand affordance for hierarchies deeper than that — it
+never assumes a fixed six-rung `Realm → Series → Book → Act → Chapter → Leaf` shape, and
+never forces the author to drill down to leaf depth.
 
 The confirmed path becomes the tag's build-metadata segment (§17.6), phrased as the
 **Nearest Common Ancestor (NCA)** of the change: the narrowest node the author
@@ -70,22 +75,30 @@ confirms covers everything the tag is about.
 ### 17.6 Version Tag Grammar
 
 ```
-MAJOR.MINOR.PATCH-format[.language].publisher.lifecycle.iteration+Realm.Series.Book.NCA
+MAJOR.MINOR.PATCH-format[.language].publisher.lifecycle.iteration+ScopePath
 ```
+
+`ScopePath` is the confirmed scope path (§17.5), rendered as dot-joined segment names
+from Realm downward to the confirmed NCA — however many levels that actually is. There
+is **no fixed slot count**: the old `+Realm.Series.Book.NCA` framing described one
+common depth, not a structural limit. The build-metadata segment is **variable-length**,
+capturing the full confirmed path exactly as deep as it actually goes, and the picker's
+display window (§17.5) never truncates what gets written into the tag — the visible
+window is a UI convenience, not a data limit.
 
 Segment table:
 
-| Segment                  | Values                                                                                                                                                                                                                                         | Optional?                                                               |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `MAJOR`                  | Integer — bumped on a Public release tag                                                                                                                                                                                                       | No                                                                      |
-| `MINOR`                  | Integer — bumped on an Editor/Agent/Publisher/Proof-reader release tag                                                                                                                                                                         | No                                                                      |
-| `PATCH`                  | Integer — bumped on a progress tag                                                                                                                                                                                                             | No                                                                      |
-| `format`                 | `manuscript` · `print` · `ebook` · `audio`                                                                                                                                                                                                     | No                                                                      |
-| `language`               | BCP 47 (`en-us`, `en-gb`, `nl`, `fr`, …)                                                                                                                                                                                                       | **No — always explicit** (see B.23)                                     |
-| `publisher`              | Agent/publisher/platform shortcode (`kdp`, `penguin`, `acx`, …)                                                                                                                                                                                | Yes — omit if not applicable; **forbidden for `manuscript`** (see B.23) |
-| `lifecycle`              | See Consolidated Lifecycle Labels table below                                                                                                                                                                                                  | No                                                                      |
-| `iteration`              | Integer, resets per `format.language.publisher` prefix                                                                                                                                                                                         | No                                                                      |
-| `+Realm.Series.Book.NCA` | Build metadata: the confirmed scope path (§17.5), truncated to the NCA. **Not ignorable** — unlike default semver precedence rules, this segment is semantically load-bearing (identifies _which_ Realm/Book this version history belongs to). | No                                                                      |
+| Segment      | Values                                                                                                                                                                                                                                                          | Optional?                                                               |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `MAJOR`      | Integer — bumped on a Public release tag                                                                                                                                                                                                                        | No                                                                      |
+| `MINOR`      | Integer — bumped on an Editor/Agent/Publisher/Proof-reader release tag                                                                                                                                                                                          | No                                                                      |
+| `PATCH`      | Integer — bumped on a progress tag                                                                                                                                                                                                                              | No                                                                      |
+| `format`     | `manuscript` · `print` · `ebook` · `audio`                                                                                                                                                                                                                      | No                                                                      |
+| `language`   | BCP 47 (`en-us`, `en-gb`, `nl`, `fr`, …)                                                                                                                                                                                                                        | **No — always explicit** (see B.23)                                     |
+| `publisher`  | Agent/publisher/platform shortcode (`kdp`, `penguin`, `acx`, …)                                                                                                                                                                                                 | Yes — omit if not applicable; **forbidden for `manuscript`** (see B.23) |
+| `lifecycle`  | See Consolidated Lifecycle Labels table below                                                                                                                                                                                                                   | No                                                                      |
+| `iteration`  | Integer, resets per `format.language.publisher` prefix                                                                                                                                                                                                          | No                                                                      |
+| `+ScopePath` | Build metadata: the confirmed scope path (§17.5), truncated to the NCA, variable-length. **Not ignorable** — unlike default semver precedence rules, this segment is semantically load-bearing (identifies _which_ Realm/Book this version history belongs to). | No                                                                      |
 
 Consolidated Lifecycle Labels:
 

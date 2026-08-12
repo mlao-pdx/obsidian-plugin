@@ -74,8 +74,29 @@ grouped by the taxonomy above:
 | ---------------------------- | ------------------------------------------------------------------- |
 | Configurable / structural    | `is`, `for`, `compile`, `folder_index`, `sort_index`, `narradin__*` |
 | Configurable / narrative     | `pov`, `setting`                                                    |
+| Configurable / alias         | `do_not_rename`                                                     |
 | Configurable / Obsidian core | `aliases`, `tags`, `cssclasses`, `icon`                             |
 | Configurable / ecosystem     | `excalidraw*` (prefix match)                                        |
+
+**`do_not_rename`.** A timestamp-valued Configurable key (Decision 7, Part 10). Author-set,
+optionally auto-populated via a command (or by the Compiler, on every Generated
+Companion, Part 8). **Target-side**: it excludes the note carrying it from receiving
+Alias Manager rewrites; it does **not** prevent the underlying entity itself from being
+renamed elsewhere. Gates Alias Manager target discovery only (§10.6) — it has no effect
+on anything else. A timestamp, not a boolean, so the author has a handle on when the
+freeze happened, not just that one exists.
+
+**Tags vs. properties for author-owned booleans (Decision 8, guidance only).** Pure
+author-owned boolean Configurable keys are good candidates for Obsidian tags instead of
+frontmatter properties — presence is the boolean sign, with no properties-panel clutter
+— but only under a reserved namespace prefix (e.g. `#narradin/...`, mirroring
+`narradin__*`) to avoid colliding with an author's own unrelated tags, and only for
+facts the _author_ owns. Machine-owned/lozenge state (`◊status`, anything
+`narradin__*`) must never become a tag: tags lack the lozenge namespace's deliberate
+typing friction, so machine state would become trivially, accidentally disturbable.
+`do_not_rename` itself ended up **not** using this pattern — it needs a timestamp value,
+which tags can't carry gracefully — so there is no concrete current application; this
+guidance is recorded here for future use only.
 
 ### 9.1 Grammar
 
@@ -249,6 +270,17 @@ command; `◊accepted`/`◊rejected` are written at the exact moment the author 
 explicit Accept or Reject choice — the decision is authorial, the marker syntax is not.
 Both remain usable in **either** frontmatter or inline contexts, same as every other
 System key.
+
+**A third class: owner-scoped append/remove.** `◊status` (Decision Record B.25, Part 12)
+is a lozenge-prefixed, **list-valued** System Key, distinct from both classes above: no
+single subsystem owns the whole value, and no single write replaces it. Any number of
+owning subsystems may append their own token to the end; each subsystem may only remove
+tokens **it** owns, cherry-picked from wherever they sit in the array, never another
+subsystem's. The **last entry governs display** — recency, not severity, a deliberate
+choice to avoid building a subjective ranking system (Count and Report, Never Judge,
+Part 1). Exclusively machine-written, like every lozenge marker; maintained truthfully
+regardless of whether it is currently rendered. See Part 12's `StatusOverlayProvider`
+subsection for the full mechanism.
 
 ### Key Normalisation
 

@@ -126,8 +126,14 @@ A background worker. Executes each Source Note's backlog across its targets.
 A Series-level character rewrites across that Series; a Chapter-scoped bit player
 rewrites that Chapter (Local Scope = Chapter). Mentions outside Local Scope are missed: a
 deliberate Half-Fix — narrower than the entity's **Reference-Valid Scope** (§9's Subject
-Resolution, §5.5), which extends to the whole Realm. Never wider than the containing
-Realm; Islands are never entered.
+Resolution, §5.5), which extends to the whole Realm. **Never wider than the Source
+Note's own Local Scope, which may now legitimately span nested Realms** (Decision 4,
+§5.1, §5.3) — the old "Islands are never entered" clause is retired outright: Islands no
+longer exist, so there is nothing left to not-enter. This is the **same underlying
+mechanism, and the same scope, as Compile Scope** (§8.1) — no bifurcation between the
+two operations (Decision 7, new B.24 I1): both are bounded by the anchoring note's own
+Local Scope, full stop. See §5.4's worked example for how this plays out when a Source
+Note moves between nested Realms.
 
 **Target discovery** — via the Mention Index (§12.5), not a Local-Scope-wide scan. The
 index is maintained against all claimed strings, _including stale `fka` values_, so the
@@ -268,6 +274,38 @@ a **single-writer lease**:
 - Non-owner devices show a warning banner naming the owner, with **Claim ownership** behind
   a confirmation. Claiming is cheap: there is no ledger to rebuild, only a cache.
 - Documented procedure: run a manual pass before switching machines.
+
+### 10.10 Target Exemption — `do_not_rename`
+
+A **target-side** Configurable key (Decision 7, Part 9 §9.0): timestamp-valued, author-set
+(optionally auto-populated via a command), and auto-stamped by the Compiler on every
+Generated Companion at creation (Part 8). It excludes the note carrying it from
+**receiving** Alias Manager rewrites; it does **not** freeze the underlying entity
+itself from being renamed elsewhere — only this one note's own text is exempt.
+
+**Checked during target discovery** (§10.6): a candidate target carrying a present
+`do_not_rename` is skipped before any replacement is computed for it.
+
+**A skip is a successful pass, not a failure.** It is not logged, not treated as an
+unresolved backlog item — the author already knows they froze the note themselves, or
+it holds generated derivative content the next recompile will refresh anyway. This
+differs from every other skip in this Part (collision, scope-migration residue), which
+_are_ logged, because `do_not_rename` is a deliberate, informed author choice rather
+than an unresolved ambiguity.
+
+**`fka` clears normally for the Source Note regardless of the skip.** The rename is
+still fully propagated everywhere else within Local Scope; only this one frozen target's
+text is left stale. This is the accepted Half-Fix consequence, stated explicitly: a
+frozen target's un-propagated history is **permanently, genuinely lost** once the pass
+clears — the same pattern already established for the Local-Scope-bounded blast radius
+above, not a new kind of accepted loss.
+
+**Un-freezing later does not retroactively catch up.** Removing `do_not_rename` from a
+note does not replay any renames that happened while it was frozen; the note simply
+becomes eligible for future passes going forward.
+
+`[OPEN Q-19]` Whether every Compiler output gets this auto-stamp, or only ones tied to a
+Version Control release tag (§17), is left open — see §15.
 
 ---
 
@@ -449,5 +487,67 @@ flowchart LR
 Mention Index (§12.5), which silently converted a rename-safety measure into total
 invisibility for short-named characters. Worth remembering as a pattern: **a rule shared
 between a writer and a reader will behave differently in each.**
+
+---
+
+## B.24 Alias Manager / Compile Scope Parity and `do_not_rename`
+
+**Chain:** I1 does Alias Manager blast radius bifurcate from Compile Scope given nested
+Realms → I2 how does an author permanently exempt a note from future rewrites → I3
+should Compiler output auto-receive this.
+
+```mermaid
+flowchart LR
+    subgraph S1["I1: Does the Alias Manager's blast radius bifurcate from Compile Scope now that Realms can nest"]
+        I1{{Does the Alias Manager's blast radius bifurcate from Compile Scope now that Realms can nest}}
+        P1a[Bifurcate — Alias Manager stays Realm-bounded even though Compile now reaches nested Realms]
+        P1b[No bifurcation — same mechanism as Compile Scope, both bounded by the anchoring note's own Local Scope]
+        I1 --> P1a
+        I1 --> P1b
+        C1a(CON Manufactures a special case with no problem it uniquely solves, echoing B.2 I6's rejection of bifurcated scope handling)
+        P1a --> C1a
+        A1a(PRO Consistent with every other boundary in the design, which is already anchored by Local Scope rather than by a Realm-specific rule)
+        P1b --> A1a
+        D1([DECIDED no bifurcation, same mechanism as Compile Scope])
+        P1b ==> D1
+    end
+    D1 -.-> I2
+    subgraph S2["I2: How does an author permanently exempt a note from future rewrites"]
+        I2{{How does an author permanently exempt a note from future rewrites}}
+        P2a[Bare boolean flag]
+        P2b[Timestamp-valued property]
+        I2 --> P2a
+        I2 --> P2b
+        C2a(CON A bare presence or absence flag cannot tell the author when the freeze happened)
+        P2a --> C2a
+        A2a(PRO Gives the author a handle on understanding what they are looking at)
+        P2b --> A2a
+        D2([DECIDED timestamp-valued, target-side])
+        P2b ==> D2
+    end
+    D2 -.-> I3
+    subgraph S3["I3: Should Compiler output auto-receive this exemption"]
+        I3{{Should Compiler output auto-receive this exemption}}
+        P3a[No, author must freeze generated output manually]
+        P3b[Yes, auto-stamped at creation]
+        I3 --> P3a
+        I3 --> P3b
+        A3a(PRO Generated content is derivative and self-heals on the next recompile, so freezing it by default is safe)
+        P3b --> A3a
+        D3([DECIDED yes, auto-stamped at creation])
+        P3b ==> D3
+    end
+```
+
+**The target-vs-source-side distinction, stated as an Argument, not a separate Issue.**
+`do_not_rename` is deliberately **target-side**: it protects one note's own text from
+being rewritten, without freezing the underlying entity from being renamed by the
+Alias Manager elsewhere. Precise target-vs-source-side prose (§10.10) resolves the
+ambiguity a bare boolean would have left even less legible.
+
+**I3's open remainder.** Whether _every_ compile output gets this automatically, or only
+output tied to a Version Control release tag (§17), is carried forward as an explicit
+open question (`[OPEN Q-19]`, §15) rather than resolved here — I3 decides only that
+auto-stamping happens at creation, not its blanket-vs-tag-gated scope.
 
 ---

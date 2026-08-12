@@ -12,9 +12,10 @@ Parked deliberately, with reasoning preserved so it isn't relitigated.
 - **Outtake lifecycle** — the cut command, collection-note layout and grouping, restore
   semantics, marker consumption, and similarity ranking against the current scene. The
   marker itself is fully specified (§16.5). `[OPEN Q-16c]`
-- **Structural health reports** — scoped `narradin` codeblocks reporting on Islands,
-  orphans, mismatches, unresolved property subjects with fuzzy candidates, `is` found in
-  body properties, near-miss contexts, and the Rashomon report.
+- **Structural health reports** — scoped `narradin` codeblocks reporting on orphans,
+  order-advisory mismatches, unresolved property subjects with fuzzy candidates, `is`
+  found in body properties, near-miss contexts, and the Rashomon report. Islands, which
+  used to be part of this list, are retired (§4.5).
 - **Alias deduplication UI** — enforcing unique aliases with guided renaming.
 - **Fuzzy entity matching** — edit-distance tolerance, opt-in, surfaced as suggestions.
 - **CMOS normalisation** on prose compiles.

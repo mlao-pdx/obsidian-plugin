@@ -10,9 +10,17 @@ text.
 - **Trigger** — a command from a note carrying a `compile` property. That note's location
   determines the compiling note's **Local Scope**, which anchors both the **Compile
   Scope** (§5.5) and the eligibility test in §8.4: run it from a Book folder note,
-  compile that Book; from a Series folder note, compile the Series.
+  compile that Book; from a Series folder note, compile the Series. **This Local Scope
+  is bounded by no Realm-boundary exception** — since nesting is unconditionally legal
+  and unconditionally contained (§5.1, §5.3, Decision 4), a Compile Scope can legitimately
+  reach into a nested Realm whenever the anchor's own subtree contains one. There is no
+  special case here: "let placement decide" (§4.1) applies to Compile exactly as it
+  applies to everything else.
 - **Interaction** — a modal confirming compile types, resolved **Compile Scope**, and
-  estimated word count. **No editor involvement.**
+  estimated word count. When the resolved Compile Scope crosses into one or more nested
+  Realms, the modal additionally names each nested Realm pulled in and its rough size,
+  before the author commits — informational, not gating, mirroring §17.8's restore
+  preview precedent. **No editor involvement.**
 - **Output** — a **Generated Companion** containing hard text. Never an embed, never a
   codeblock, never an insertion at the cursor. Written in the background; a notice with a
   click-to-open action fires on completion.
@@ -25,8 +33,16 @@ text.
 - **Non-markdown Companions** — emitted as transclusions; there is no alternative.
   Transclusions already present in source markdown pass through verbatim: they are
   content, not compile directives.
-- **Islands** — excluded from any outer compile. Compiling _from inside_ an Island works
-  normally; no banner, since the health report covers it.
+- **`do_not_rename` auto-stamp.** Every Companion that generates derivative content from
+  other notes (even if the result ends up empty) is auto-stamped with `do_not_rename`
+  (timestamp-valued) at creation (Decision 7, Part 9 §9.0, Part 10). Generated content is
+  derivative and self-heals on the next recompile, so freezing it by default is safe.
+  **This must not be confused with creating a new, empty Companion the author intends to
+  populate themselves** — that path never carries this auto-stamp; only content the
+  Compiler itself generates does.
+- **Islands** — retired; there is no longer a severed-subtree case to describe here. A
+  compile's Compile Scope simply follows the compiling note's Local Scope wherever it
+  reaches (§8.1 above), nested Realms included.
 
 **Content transform** — deferred to build. Expected: frontmatter stripped, Entity
 Property syntax resolved (`{+…=v}` → `v`; `{~…}`, `{-…}` → nothing), heading remapping,
@@ -85,14 +101,14 @@ _may range_, not where it _appears_.
 2. **Inclusion — evidence.** At least one resolved reference _within_ the compiling
    note's **Narrative Traversal Scope**, drawn from the Mention Index (§12.5).
 
-| Case, compiling at Book 2                        | Eligible     | Included            |
-| ------------------------------------------------ | ------------ | ------------------- |
-| Realm-scoped protagonist appearing in Book 2     | ✓ ancestor   | ✓                   |
-| Realm-scoped character never appearing in Book 2 | ✓ ancestor   | appendix only       |
-| Book 2 bit player                                | ✓ descendant | ✓                   |
-| Book 3 bit player                                | ✗            | —                   |
-| Entity mentioned only inside an Island           | —            | ✗ never             |
-| Entity mentioned only in `{-…}` removed content  | —            | ✗ not an appearance |
+| Case, compiling at Book 2                                           | Eligible     | Included                                                                                         |
+| ------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------ |
+| Realm-scoped protagonist appearing in Book 2                        | ✓ ancestor   | ✓                                                                                                |
+| Realm-scoped character never appearing in Book 2                    | ✓ ancestor   | appendix only                                                                                    |
+| Book 2 bit player                                                   | ✓ descendant | ✓                                                                                                |
+| Book 3 bit player                                                   | ✗            | —                                                                                                |
+| Entity appearing only in a nested Realm within Book 2's own subtree | ✓ descendant | ✓ — nesting is unconditionally contained (§5.1, §5.3); no exclusion case exists for this anymore |
+| Entity mentioned only in `{-…}` removed content                     | —            | ✗ not an appearance                                                                              |
 
 **Ordering** — grouped by the entity's Local Scope level, Realm down to the lowest folder
 level; within each group, ordered by first appearance in the Narrative Traversal Scope,

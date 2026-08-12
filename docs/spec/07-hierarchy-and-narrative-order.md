@@ -2,41 +2,48 @@
 
 ## Part 7: Hierarchy and Narrative Order
 
-### 7.1 The Steel Thread
+### 7.1 The Narrative Backbone
 
-Along with `is`, the hierarchy is Narradin's steel thread.
+Along with `is`, the hierarchy is Narradin's narrative backbone.
 
-- The narrative hierarchy is a **fixed** chain of 5 folder anchors, in mandatory order:
-  `Realm → Series → Book → Act → Chapter` (§2.1, §2.2). There is no author-defined list
-  — the chain is the same in every vault.
-- Every one of the 5 anchors is a Folder Level. `Heading` and `Scene` are the 2 fixed
-  Leaf Levels; any custom leaf type (§2.1) is a Leaf Level too, on equal footing.
-- Boundaries encountered on a downward walk must **descend in that fixed order**.
-  Violations create Islands (§4.5).
-- **Only Realm is unskippable.** `Realm/Book A/` is valid with no Series.
-  `Realm/Series/Chapter/Scene` is valid with no Book or Act. Order is constrained;
-  completeness is not. Transparent intermediate folders (§2.2) carry no `is` and never
-  participate in this check at all — a downward walk passes through one exactly as if
-  it were not there.
-- Anchor meanings vary wildly and Narradin does not care what an author uses a `Chapter`
-  or `Act` folder to represent — the names are fixed, the intent behind them is the
-  author's.
+- The narrative hierarchy is **fully generic and arbitrary-depth** (Decision Record
+  B.17, reopened). There is no fixed chain of names — any Narrative concept may serve
+  as a folder-level anchor via folder-note placement (§4.1); level-ness is positional,
+  not a property of which concept it is.
+- **Realm is the sole mandatory anchor.** Every other Narrative concept — whatever an
+  author names it, at whatever depth — is entirely optional and entirely
+  author-arranged. `Realm/Book A/` is valid with no intermediate level at all;
+  `Realm/Scene 1.md` is valid with nothing between Realm and a leaf.
+- Boundaries encountered on a downward walk are **not validated against any fixed
+  order** — there is no sequence left to violate (Decision 4). A captured, purely
+  advisory expected order (§2.3) drives an informational comparison via the
+  `StatusOverlayProvider` (§12) — never a structural gate.
+- Every Narrative concept placed as a matching folder note is a Folder Level; every
+  Narrative concept **not** so placed — Heading, Scene, a custom concept, or even a
+  concept that elsewhere in the vault does govern a folder — is a Leaf Level in that
+  location. This is positional, per-instance, never a fixed property of the concept
+  itself (§2.1).
+- Anchor meanings vary wildly and Narradin does not care what an author uses any given
+  folder-level concept to represent — the mechanism is fixed (folder-note placement),
+  the intent behind any given concept is the author's.
 
-**Chaos Override.** Any note carrying a leaf-level `is` — `Heading`, `Scene`, or any
-custom leaf type — is a leaf note, full stop — name-matched to its folder or not, alone
-in its own folder or not. Leaf `is` values never create boundaries, built-in or custom
-alike.
+**Chaos Override.** Any Narrative note that is **not** the governing Folder Note for its
+folder is a leaf note, full stop — whatever concept it carries, name-matched to its
+folder or not, alone in its own folder or not. A note's `is` value never by itself
+creates a boundary; only matching the filename template while occupying that role does
+(§4.1).
 
 ### 7.2 What Gets Traversed
 
 - **Notes** — only those carrying a valid Narrative `is` (Absolute Opt-In).
 - **Folders** — _all_ folders are descended into, marked or not. A transparent
-  intermediate folder — one carrying no folder-anchor `is` — establishes no boundary
-  and yields no content of its own; it is ordered among its siblings exactly like a
-  folder that has no `folder_index` (§7.3), and its children are traversed by recursing
-  into it with the same algorithm.
-- **Excluded** — Islands (from outer traversal only), `_narradin`, and Generated
-  Companions.
+  intermediate folder — one with no matching Folder Note (§4.1) — establishes no
+  boundary and yields no content of its own; it is ordered among its siblings exactly
+  like a folder that has no `folder_index` (§7.3), and its children are traversed by
+  recursing into it with the same algorithm. Nesting of any depth, Realm-in-Realm
+  included, is traversed straight through — nothing truncates it (§5.1, §5.3).
+- **Excluded** — `_narradin` and Generated Companions. Nothing structural is excluded
+  from traversal anymore; Islands, which used to be excluded here, are retired (§4.5).
 
 ### 7.3 Ordering Within a Directory
 
@@ -47,26 +54,37 @@ panes; folders cannot be manually sorted, files can. NN's drag-and-drop writes
 expected to be used sparingly — realistic for Books, Series, and Acts; nobody
 hand-numbers beats.
 
+**The classification oracle.** Whether a given note is the Folder Note (yielded first,
+never sorted as a leaf or subfolder) or a leaf note is decided by §4.1/§4.2: does this
+note match the configured folder-note filename template for its folder **and** carry a
+valid Narrative `is`? This replaces the old "is the `is` value in the fixed leaf-type
+set" test — the oracle is now about matching-and-placement, not about which concept a
+note declares. Everything else below (folder-note-first, `sort_index` for leaves only,
+`folder_index` for subfolders only, leaves-before-subfolders) is structurally
+unchanged — none of it assumes Realms are a hard traversal stop, and none of it ever
+did (§5.1).
+
 **Algorithm, per directory — leaves before subfolders, strictly:**
 
 1. **Yield the Folder Note first**, before anything else. It is not sorted among its
    children. Folder Notes are typically sparse dashboards, but they are the author's to
    fill and Narradin never skips them.
-2. **Leaf notes, all of them, next.** Any note carrying a leaf-level `is` — `Heading`,
-   `Scene`, or a custom leaf type — is ordered by `sort_index` only; missing defaults to
-   `1`. Ties resolve by Clash Resolution — which, absent NN custom sort, means _all_ of
-   them. **Leaf notes never carry or consult `folder_index`** — it plays no role in
-   their position, ever.
+2. **Leaf notes, all of them, next.** Any Narrative note that is not its folder's
+   governing Folder Note — per the classification oracle above — is ordered by
+   `sort_index` only; missing defaults to `1`. Ties resolve by Clash Resolution — which,
+   absent NN custom sort, means _all_ of them. **Leaf notes never carry or consult
+   `folder_index`** — it plays no role in their position, ever.
 3. **Subfolders, all of them, after every leaf note has been yielded.** Ordered by
    `folder_index` only, ascending; missing sorts last. Ties resolve by Clash Resolution.
    **Subfolders never carry or consult `sort_index` for positioning** — a subfolder's
    own Folder Note may carry a `sort_index` (NN writes one to every file except the
    folder note when custom sort is enabled), but it is never read for this purpose.
-   This applies uniformly whether the subfolder carries a folder-anchor `is`, no `is` at
-   all (a transparent intermediate folder), or is itself an out-of-order Island — §4.5
-   governs whether its _contents_ are excluded from _outer_ traversal once recursed
-   into; the ordering algorithm here does not special-case any of that, it simply
-   assigns every subfolder a position among its siblings and recurses.
+   This applies uniformly whether the subfolder carries a matching Folder Note, no
+   matching note at all (a transparent intermediate folder), or one whose expected
+   advisory order (§2.3, §4.5) doesn't match what was actually encountered — the
+   ordering algorithm here does not special-case any of that; nothing is excluded from
+   traversal anymore (Decision 4), so it simply assigns every subfolder a position
+   among its siblings and recurses.
 4. **Leaves are yielded entirely before any subfolder is recursed into.** This is a
    strict depth-first, leaves-before-children rule — every leaf note in a directory
    appears in the traversal output before the first note from any subfolder of that
@@ -184,7 +202,15 @@ Expected: `Realm.md`, `Book A.md`, `Scene H`, `Chapter 1.md`, `Scene G`.
 
 The **Content Sequence** of a Narrative Traversal Scope (§5.5) is the narrative sequence
 (§7.3) with each note followed immediately by its Companions in configured companion
-type order. Islands and Generated Companions are excluded.
+type order. Generated Companions are excluded; Islands, which used to be excluded here
+too, are retired (§4.5) — nothing is structurally excluded from the Content Sequence
+anymore beyond that one case.
+
+**Traversal never truncates at a nested Realm boundary.** This is a real behavior
+consequence of Decision 4 (§5.1, §5.3), not a special case stated here for the first
+time: several consumers — the Compiler (Part 8), every view (Part 16), and POV
+positional resolution (§16.4) — depend on the Content Sequence walking straight through
+a nested Realm exactly as it would through any other folder-level boundary.
 
 Defined once, consumed by the Compiler (Part 8), every view (Part 16), positional value
 resolution (§16.4), and health reporting. There is no second traversal anywhere.

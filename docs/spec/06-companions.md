@@ -15,7 +15,11 @@ A Narrative note (`Scene 12.md`) is a _dashboard_. The prose lives in
 - **`is`** — a Companion concept (`is: [[Prose]]`). Mandatory; without it the file is
   invisible.
 - **`for`** — a wikilink to the host Narrative note (`for: [[Scene 12]]`). Mandatory.
-  The authoritative binding.
+  The authoritative binding. **Under a fixed (placeholder-free) folder-note filename
+  template (§2.3)**, a bare wikilink naming a folder note's concept by basename can be
+  ambiguous vault-wide — the same concern §8.4 raises for the Player/Plot compile
+  Companion `for` link. Cross-referenced here rather than duplicated; see §2.3/§4.1's
+  Decision Record B.1 for the accepted trade-off.
 - **Filename** — `HostBasename__Suffix.md`. A creation convenience and visual grouping
   aid, **not** the binding.
 

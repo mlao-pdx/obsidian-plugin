@@ -4,11 +4,14 @@
 
 Every note is classified by its `is` value into exactly one category:
 
-1. **Narrative** — the structural spine. Five fixed folder anchors (Realm, Series, Book,
-   Act, Chapter), two fixed leaf types (Heading, Scene), and any number of
-   user-defined custom leaf types (§2.1). Folder anchors are always Folder Levels;
-   Heading, Scene, and every custom leaf type are always Leaf Levels — there is no
-   configuration surface that changes which is which.
+1. **Narrative** — the structural spine. No fixed folder/leaf classification by
+   category: role is **positional**, determined per-instance by whether a note is
+   placed as a matching folder note (§4.1) for its folder. Realm is the sole mandatory
+   anchor (§2.1, §2.2); every other Narrative concept — Series/Book/Act/Chapter-style
+   concepts, Heading, Scene, and any custom concept alike — may act as a folder-level
+   boundary or as a leaf note, depending purely on placement, not on which concept it
+   is. `[OPEN Q-18]` whether Scene/Heading eligibility should ever be restricted is left
+   open (§15).
 2. **Companion** — attached content; a subsection of a host Narrative note.
 3. **Player** — world entities. Scope-inheriting. May be an Entity Property subject.
 4. **Plot** — structural threads. Scope-inheriting, mechanically identical to Players.
@@ -20,9 +23,8 @@ A note with no `is`, or an unrecognised `is`, does not exist for Narradin. Autho
 scatter arbitrary notes anywhere without consequence.
 
 **Classification is not scope membership.** This list assigns each note a permanent
-ontology category; it says nothing about where that note's boundaries fall. A note keeps
-its Narrative classification even when a hierarchy break removes it from Narrative Scope
-— that is precisely what an Island (§4.5) is: still Narrative by `is`, no longer inside
-Narrative Scope. See the full named scope taxonomy at §5.5.
+ontology category; it says nothing about where that note's boundaries fall or whether it
+currently governs a folder. A note's Narrative classification never changes just because
+it isn't currently placed as a folder note — see the full named scope taxonomy at §5.5.
 
 ---

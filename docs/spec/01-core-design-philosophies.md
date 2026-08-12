@@ -6,11 +6,12 @@ Deviations must be documented at the point of deviation.
 
 - **Embrace the Chaos Around the Narrative Backbone.** Make sense of the chaos; do not
   prevent the chaos the author desires. Structural oddities are permitted so long as
-  they never silently destroy or corrupt work. The narrative backbone itself — the five
-  fixed folder anchors (Realm, Series, Book, Act, Chapter) and the two fixed leaf types
-  (Heading, Scene) — is rigid by design and exempt from this chaos, precisely so
-  everything else can be chaotic without risk: intermediate folders, custom leaf types,
-  and note content remain entirely the author's to arrange (§2.1, §2.2).
+  they never silently destroy or corrupt work. The rigid part is no longer a fixed list
+  of names — there is no fixed list. It is the _mechanism_: a Narrative concept placed
+  as a matching folder note (§4.1) becomes a boundary, full stop. Realm alone is the
+  mandatory anchor. Chaos is embraced in which concepts exist, how many levels deep, and
+  everything else — intermediate folders, leaf content, and (per Decision Record B.17)
+  the concepts themselves.
 - **The Half-Fix Rule.** We don't break things you didn't break, but we may only
   half-fix things if you don't play along. The user has responsibilities; Narradin holds
   them accountable rather than restricting them.
@@ -27,21 +28,29 @@ Deviations must be documented at the point of deviation.
 - **The Realm Is the Universe of Discourse.** A note with a valid `is` but no Realm
   ancestor is invisible to Narradin, whatever its category. No Realm, no play. Such
   notes are _reported_, never silently dropped.
-- **Realm Blast Radius.** Every _action_ is bounded by a single Realm. _Documented
-  deviation:_ concept renames (§2.4) are vault-wide by necessity, being configuration
-  migrations delegated wholesale to Obsidian's link cascade.
+- **Realm Blast Radius.** Every _action_ is bounded by the anchoring note's own Local
+  Scope, anchored at a Realm. An outer Realm's blast radius now legitimately extends
+  into every Realm nested anywhere within its own subtree, at any depth (§5.3) — this is
+  not a contradiction of "bounded by a single Realm," it is what that boundary always
+  meant once nesting is unconditionally legal: the boundary is the anchor's own Realm,
+  whatever it contains. An inner Realm's blast radius stays exactly as bounded as
+  before — it never reaches back out. _Documented deviation:_ concept renames (§2.4) are
+  vault-wide by necessity, being configuration migrations delegated wholesale to
+  Obsidian's link cascade.
 - **The Membrane Is One-Way, Always.** The outside looks in; the inside never looks out.
-  And nothing ever crosses _into_ an Island from outside — reads or writes, reports or
-  rewrites, without exception. This invariant is load-bearing for reasoning about the
-  whole system.
-- **Order Constrains; Completeness Does Not.** The five fixed folder anchors — Realm,
-  Series, Book, Act, Chapter — must appear in that order wherever they appear. **Only
-  Realm is unskippable;** any of the other four may be omitted. Transparent intermediate
-  folders (§2.2) carry no `is` and never participate in order checks — they are not
-  levels at all, just pass-throughs.
-- **Structure Errors Sever, They Do Not Delete.** A structural violation removes a
-  subtree from compilation and outer reporting. It never removes notes from Narradin's
-  awareness, and it is always reported.
+  This holds without exception for every nested Realm boundary, any depth — reads and
+  writes, reports and rewrites alike, no bifurcation. This invariant is load-bearing for
+  reasoning about the whole system.
+- **Order Constrains Nothing; It Is Advisory.** There is no fixed list of anchors to be
+  incomplete against, and no structural order enforcement left at all (Decision Record
+  B.2, I4). A captured-but-never-enforced expected order (§2.3) drives a purely
+  informational comparison, surfaced through the status-overlay mechanism (§12) — never
+  consulted by boundary or scope resolution.
+- **Structure Advisories Never Block.** Nothing a folder-note placement or an order
+  mismatch can do ever removes a subtree from compilation, traversal, or outer
+  reporting — that entire class of consequence (Islands) is retired. What survives from
+  the old "Structure Errors Sever" principle is narrower and purely informational: a
+  structural oddity is always reported, never silently hidden, and never gates anything.
 - **The Vault Is Truth; The Index Is A Cache.** Every fact Narradin relies on is
   reconstructable from vault content. IndexedDB exists solely for query speed;
   disagreements resolve in the vault's favour, silently. A lost index costs a rebuild,

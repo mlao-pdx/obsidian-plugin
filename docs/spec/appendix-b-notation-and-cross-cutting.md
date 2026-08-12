@@ -34,8 +34,10 @@ the file that holds it:
 | B.21 | Restore Semantics                                               | `17-version-control.md`                    |
 | B.22 | Author Tagging Model — Releases, Progress, and What Was Dropped | `17-version-control.md`                    |
 | B.23 | Version Tag Grammar — Language and Validation                   | `17-version-control.md`                    |
+| B.24 | Alias Manager / Compile Scope Parity and `do_not_rename`        | `10-the-alias-manager.md`                  |
+| B.25 | The Status Overlay Mechanism                                    | `12-architecture.md`                       |
 
-**Next available number: B.24**
+**Next available number: B.26**
 
 ## Reading the graphs
 
@@ -90,8 +92,8 @@ flowchart LR
 ```mermaid
 flowchart LR
     I1[is is Truth]
-    I2[Boundary defined by is alone]
-    I3[Name sync is cosmetic]
+    I2[Boundary requires a name-matched folder note, B.1 new-I1 — supersedes is-alone]
+    I3[Name sync is correctness-critical under a folder-placeholder template, not merely cosmetic]
     I4[Folder position ignores sort index]
     I5[Narrative order is immune to name drift]
     I1 --> I2 --> I3
@@ -113,8 +115,8 @@ flowchart LR
     R1[Realm is the universe of discourse]
     R2[No global scope for players]
     R3[Orphans must be reported]
-    R4[Cross Realm setup payoff pairing is impossible]
-    R5[That status indicator was deleted]
+    R4[Nesting is unconditionally legal and unconditionally contained, B.2 I4/I5]
+    R5[Cross-Realm setup/payoff pairing is now possible, asymmetrically, and flagged as an alert]
     R1 --> R2 --> R3
     R1 --> R4 --> R5
 ```

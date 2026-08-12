@@ -81,8 +81,19 @@ twelve candidates is one row plus a count, not twelve rows.
 - **Span indicator** — hierarchy distance between the two ends, coloured by severity, from
   the Indexer's ancestor chain.
 
-**Cross-Realm pairing is structurally impossible** and no longer a reportable state: both
-ends of a thread are Realm-bounded by construction.
+**Cross-Realm pairing is now possible, asymmetrically.** Both ends of a thread are no
+longer Realm-bounded by construction — this is a direct consequence of the unconditional
+Membrane Rule (§5.3), not a special case for this view. An outer-anchored report can pair
+a setup in the outer Realm with a payoff in a Realm nested within it (or vice versa,
+setup nested / payoff outer); the reverse direction — a report anchored inside the nested
+Realm pairing outward to the containing Realm — is never valid, because inheritance
+halts at the first Realm (§5.2). A cross-Realm pair (outer-to-nested, either direction)
+is flagged as an alert in the report: legal, but exceptional enough to call out rather
+than render identically to a same-Realm pair. None of the existing status indicators
+above (Time travel, Red herring, Deus ex machina, Span indicator) assume Realm-bounded
+pairing themselves — Span indicator's hierarchy distance already generalizes to a
+cross-Realm pair without change, since it already measures ancestor-chain distance
+rather than same-Realm-ness.
 
 ### 16.3 Cast Lists
 
@@ -213,6 +224,10 @@ A central registry mapping semantic keys to Lucide slugs, recording each binding
 
 - **Registrants:** hierarchy levels, entity categories, context vocabulary, status
   indicators, report chrome.
+- **`StatusOverlayProvider` is the sole writer into the "status indicators" registrant
+  category** (§12.10) — icon only, never color/background. The category itself already
+  existed in this list before Decision 6; only its write-path (one Provider, forwarding
+  on behalf of every contributing module) is new.
 - **Picker:** shows all Lucide icons; any already bound carries a badge naming its
   binder(s). Reuse is permitted — informed, not blocked.
 - **Fallback:** unknown key → `circle-question-mark`, never a blank slot.
