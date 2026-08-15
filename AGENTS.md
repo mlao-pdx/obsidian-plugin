@@ -1,4 +1,4 @@
-# Narradin — Obsidian Plugin
+# Obsidian Plugin Template — Agent Guide
 
 ## Project overview
 
@@ -72,8 +72,8 @@ Follow Obsidian's Developer Policies and Plugin Guidelines. In particular:
 - Ship features that require cloud services without clear disclosure and
   explicit opt-in.
 - Store or transmit vault contents unless essential and consented.
-- Assign a default hotkey to any command (`Command.hotkeys`). Narradin never
-  ships default hotkeys — binding any key is entirely the user's
+- Assign a default hotkey to any command (`Command.hotkeys`). This project
+  never ships default hotkeys — binding any key is entirely the user's
   prerogative, configured by them in Obsidian's Hotkeys settings.
 
 ## Git workflow
@@ -95,8 +95,6 @@ Follow Obsidian's Developer Policies and Plugin Guidelines. In particular:
   troubleshooting, reference links: `README.md`.
 - Example file structure, common task code snippets, UI copy/UX
   guidelines: `obsidian-plugin-patterns` skill.
-- Functional specification (the "what" and "why" of Narradin's design,
-  including architecture-boundary rationale to consult when writing/
-  reviewing lint rules): `docs/spec/README.md`.
-- Creating or revising a spec Decision Record (IBIS diagrams under
-  `docs/spec/`): load the `spec-decision-records` skill.
+- Creating or revising a decision record (IBIS diagrams recording a
+  design decision's reasoning and history): load the
+  `spec-decision-records` skill.

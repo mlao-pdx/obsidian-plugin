@@ -10,40 +10,72 @@ See `docs/dev/tsdoc-conventions.md` for the doc-comment format (`@see`/
 
 ## Why
 
-`src/core` (the domain algorithms: boundary resolution, Content Sequence
-traversal, scope resolution, Entity Property parsing, Alias/Compiler plan
-computation) must never import `obsidian` or `dexie` at runtime. Ports are
-the seam that makes that possible: core depends on a port interface, and an
-adapter — living outside `src/core`/`src/ports` — implements that interface
-against the real Obsidian API or Dexie schema.
+`src/core` (domain algorithms and plan computation) must never import
+`obsidian` or `dexie` at runtime. Ports are the seam that makes that
+possible: core depends on a port interface, and an adapter — living outside
+`src/core`/`src/ports` — implements that interface against the real
+Obsidian API or Dexie schema.
 
 ## Current ports
 
-| Port              | Wraps                                                    | Consumed by                                                                 |
-| ----------------- | -------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `MetadataPort`    | `metadataCache`                                          | Layer 3 boundary resolution, Note Property reads                            |
-| `FileContentPort` | `vault.read` / `vault.cachedRead`                        | Layer 1/2 Entity Property parsing                                           |
-| `PersistencePort` | Dexie/IndexedDB schema                                   | Layer 3 traversal/resolution algorithms (paths, hierarchy, scope, mentions) |
-| `VaultWritePort`  | `vault.modify` / `rename` / `delete` + pending-write set | Workers (Alias Application Engine, Compiler) execution step                 |
-| `LoggerPort`      | vault-file writes for developer diagnostics              | Any layer, once instrumented — opt-in, silent by default (§B.16)            |
-
-See `docs/spec/12-architecture.md` §12.9 for the full rationale and which
-layers depend on which port.
+| Port              | Wraps                                       | Notes                                                                                                 |
+| ----------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `MetadataPort`    | `metadataCache`                             | Reads are expected to stay synchronous/cheap since `metadataCache` is in-memory.                      |
+| `FileContentPort` | `vault.read`/`vault.cachedRead`             | Inherently async; `metadataCache` does not guarantee body-text readiness, hence a separate read path. |
+| `PersistencePort` | Dexie/IndexedDB schema                      | Adapter must not block the calling path — batch writes, use IndexedDB transactions appropriately.     |
+| `VaultWritePort`  | `vault.modify`/`rename`/`delete`            | Execution step only; plan computation stays pure core logic.                                          |
+| `LoggerPort`      | vault-file writes for developer diagnostics | Opt-in, silent by default — see below.                                                                |
 
 ## Current adapters
 
 `src/adapters/` holds implementations, living outside `src/core`/`src/ports`
 per the rule below. First one: `ObsidianLoggerAdapter` implements
-`LoggerPort` (§B.16).
+`LoggerPort`.
+
+## `LoggerPort` design rationale
+
+Diagnostics logging is a second, independent axis from `__DEV__`:
+`__DEV__` strips dev-only code from the production bundle entirely, so it
+can never help a real user capture a real bug; `LoggerPort` ships in the
+production bundle and is silent by default until a user opts in.
+
+The log lives inside the vault (not the OS filesystem or a network
+endpoint) so a non-technical user can find and attach it to a bug report,
+and so nothing is transmitted over a network.
+
+The log file is plain text, not markdown, so it's never picked up by the
+plugin's own markdown-file processing.
+
+Vault-derived content in a log line must be wrapped in guillemets
+(`«...»`) by the calling code before reaching `log()`; structural
+information (timings, counts, stack traces) is never wrapped. This is a
+caller convention, not something the port or adapter detects
+automatically.
+
+The logger is hand-written against `LoggerPort` rather than adopting a
+logging library, because no such library ships an Obsidian-vault
+transport (one would be hand-written regardless) and a facade over
+another logger would just duplicate the seam `LoggerPort` already
+provides.
+
+## Non-blocking adapters
+
+Ports carry no performance contract themselves — that's the adapter's
+job. `MetadataPort` reads are expected to stay synchronous and cheap
+because `metadataCache` is in-memory. `FileContentPort` reads are
+inherently async (`vault.read`/`vault.cachedRead` already return
+Promises). `PersistencePort` and `VaultWritePort` adapters must not block
+the calling path — batch writes, use IndexedDB transactions
+appropriately, and never synchronously wait on I/O inside a call that
+core logic expects to return quickly.
 
 ## Rules
 
-- **No implementations here.** Adapters are a separate concern, built when
-  Layers 1–4 are actually implemented (`LoggerPort`'s adapter is the first
-  exception, since diagnostics needed no Layer to precede it).
+- **No implementations here.** Adapters are a separate concern (`LoggerPort`'s
+  adapter is the first example).
 - **No `obsidian` or `dexie` imports.** These interfaces exist so
   `src/core` never has to import either. Enforced by the
   `no-restricted-imports` rule in `eslint.config.mts` — see
   `src/core/README.md`#enforcement.
-- Port shapes are expected to grow as the layers they serve are built —
+- Port shapes are expected to grow as the domain logic they serve grows —
   treat these as living contracts, not finished APIs.

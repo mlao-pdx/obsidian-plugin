@@ -1,9 +1,9 @@
 import { Editor, MarkdownView, type MarkdownFileInfo, Modal, Notice, Plugin } from 'obsidian';
 import { ObsidianLoggerAdapter } from './adapters/obsidian-logger-adapter';
-import { DEFAULT_SETTINGS, type NarradinPluginSettings, NarradinSettingTab } from './settings';
+import { DEFAULT_SETTINGS, type MyPluginSettings, SampleSettingTab } from './settings';
 
-export default class NarradinPlugin extends Plugin {
-	settings!: NarradinPluginSettings;
+export default class MyPlugin extends Plugin {
+	settings!: MyPluginSettings;
 	loggerAdapter!: ObsidianLoggerAdapter;
 
 	override async onload() {
@@ -11,10 +11,15 @@ export default class NarradinPlugin extends Plugin {
 
 		// Wired here so it exists before any future core/service constructor
 		// needs it injected; reads settings live, so no re-wiring is needed
-		// when the user flips the Diagnostics toggle. See LoggerPort
-		// (docs/spec/12-architecture.md §12.9).
-		this.loggerAdapter = new ObsidianLoggerAdapter(this.app, () => this.settings);
-		this.loggerAdapter.log('info', 'Narradin loaded', { version: this.manifest.version });
+		// when the user flips the Diagnostics toggle.
+		this.loggerAdapter = new ObsidianLoggerAdapter(
+			this.app,
+			() => this.settings,
+			this.manifest.id,
+		);
+		this.loggerAdapter.log('info', `${this.manifest.name} loaded`, {
+			version: this.manifest.version,
+		});
 
 		// This creates an icon in the left ribbon.
 		this.addRibbonIcon('dice', 'Sample', (_evt: MouseEvent) => {
@@ -64,7 +69,7 @@ export default class NarradinPlugin extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new NarradinSettingTab(this.app, this));
+		this.addSettingTab(new SampleSettingTab(this.app, this));
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
@@ -74,14 +79,14 @@ export default class NarradinPlugin extends Plugin {
 	}
 
 	override onunload() {
-		this.loggerAdapter.log('info', 'Narradin unloaded');
+		this.loggerAdapter.log('info', `${this.manifest.name} unloaded`);
 	}
 
 	async loadSettings() {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<NarradinPluginSettings>,
+			(await this.loadData()) as Partial<MyPluginSettings>,
 		);
 	}
 

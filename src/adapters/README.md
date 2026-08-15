@@ -11,13 +11,12 @@ See `docs/dev/tsdoc-conventions.md` for the doc-comment format (`@see`/
 
 ## Current adapters
 
-| Adapter                 | Implements   | Wraps                                                   |
-| ----------------------- | ------------ | ------------------------------------------------------- |
-| `ObsidianLoggerAdapter` | `LoggerPort` | `Vault.adapter` (`DataAdapter`) under `_narradin/logs/` |
+| Adapter                 | Implements   | Wraps                                                                                     |
+| ----------------------- | ------------ | ----------------------------------------------------------------------------------------- |
+| `ObsidianLoggerAdapter` | `LoggerPort` | `Vault.adapter` (`DataAdapter`), under a `_<manifest.id>/logs/` folder derived at runtime |
 
 `logger-format.ts` holds the pure formatting/level-filtering helpers the
 adapter uses, split out with zero `obsidian` import so they're unit-testable
 without mocking the Obsidian API.
 
-See `docs/spec/appendix-b-notation-and-cross-cutting.md` B.16 and
-`docs/spec/12-architecture.md` §12.9 for the design rationale.
+See `src/ports/README.md` for the design rationale.

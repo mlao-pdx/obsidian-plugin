@@ -1,26 +1,26 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import type { LogLevel } from '@ports/logger-port';
 import { LEVEL_ORDER } from './adapters/logger-format';
-import NarradinPlugin from './main';
+import MyPlugin from './main';
 
-export interface NarradinPluginSettings {
+export interface MyPluginSettings {
 	exampleSetting: string;
-	/** Diagnostics: write logs to `<_narradin>/logs/narradin.log`. Off by default. */
+	/** Diagnostics: write logs to the vault. Off by default. */
 	loggingEnabled: boolean;
 	/** Diagnostics: minimum severity written once logging is enabled. */
 	logLevel: LogLevel;
 }
 
-export const DEFAULT_SETTINGS: NarradinPluginSettings = {
+export const DEFAULT_SETTINGS: MyPluginSettings = {
 	exampleSetting: 'default',
 	loggingEnabled: false,
 	logLevel: 'warn',
 };
 
-export class NarradinSettingTab extends PluginSettingTab {
-	plugin: NarradinPlugin;
+export class SampleSettingTab extends PluginSettingTab {
+	plugin: MyPlugin;
 
-	constructor(app: App, plugin: NarradinPlugin) {
+	constructor(app: App, plugin: MyPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -48,9 +48,9 @@ export class NarradinSettingTab extends PluginSettingTab {
 
 	/**
 	 * Diagnostics section: local, developer-facing logging only. There is
-	 * no usage analytics or telemetry — see
-	 * `docs/spec/appendix-a-rejected-decisions.md`. Nothing is written
-	 * until "Write diagnostic logs to vault" is turned on.
+	 * no usage analytics or telemetry, per this project's own policy.
+	 * Nothing is written until "Write diagnostic logs to vault" is turned
+	 * on.
 	 */
 	private displayDiagnostics(containerEl: HTMLElement): void {
 		new Setting(containerEl).setName('Diagnostics').setHeading();
@@ -58,7 +58,7 @@ export class NarradinSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Write diagnostic logs to vault')
 			.setDesc(
-				'Appends timestamped lines to <_narradin>/logs/narradin.log for bug reports. ' +
+				`Appends timestamped lines to ${this.plugin.loggerAdapter.logPath} for bug reports. ` +
 					'Off by default; nothing is written until enabled. Vault content in a log ' +
 					'line is wrapped in «guillemets» — strip everything between « and » before ' +
 					'sharing a log file.',
@@ -91,7 +91,9 @@ export class NarradinSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Reveal log folder')
-			.setDesc('Opens <_narradin>/logs/ in Obsidian\u2019s file explorer.')
+			.setDesc(
+				`Opens ${this.plugin.loggerAdapter.logsFolderPath} in Obsidian\u2019s file explorer.`,
+			)
 			.addButton((button) =>
 				button.setButtonText('Reveal log folder').onClick(() => {
 					void this.plugin.loggerAdapter.revealLogFolder();
@@ -100,7 +102,9 @@ export class NarradinSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Clear logs')
-			.setDesc('Deletes narradin.log and narradin.log.1, if present.')
+			.setDesc(
+				`Deletes ${this.plugin.loggerAdapter.logFileName} and ${this.plugin.loggerAdapter.backupFileName}, if present.`,
+			)
 			.addButton((button) =>
 				button
 					.setWarning()

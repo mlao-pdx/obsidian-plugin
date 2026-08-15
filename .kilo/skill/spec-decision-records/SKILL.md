@@ -1,14 +1,14 @@
 ---
 name: spec-decision-records
-description: How Narradin's IBIS decision-record diagrams (`## B.N` sections in docs/spec/*.md) are structured, numbered, and kept legible. Load when writing or reviewing a Decision Record section, proposing to add/revisit/overturn a design decision in docs/spec/, or checking whether a proposed change touches a load-bearing chain (§B.10).
+description: How to write and maintain IBIS decision-record diagrams recording a design decision's reasoning and history — notation, numbering, load-bearing chains, and legibility conventions. Load when writing or reviewing a Decision Record, proposing to add/revisit/overturn a design decision, or checking whether a change touches a load-bearing decision chain.
 ---
 
-# Spec decision records (IBIS diagrams)
+# Decision records (IBIS diagrams)
 
 ## Legend
 
-Authoritative source: `docs/spec/appendix-b-notation-and-cross-cutting.md` ("Reading
-the graphs"). Update both if the legend ever changes.
+This skill is the authoritative source for this notation — update it
+directly if the legend ever changes.
 
 | Shape           | IBIS role                                                         |
 | --------------- | ----------------------------------------------------------------- |
@@ -21,61 +21,66 @@ A dotted arrow (`-.->`) means _this decision forced that issue to be reopened_.
 
 ## Where records live
 
-Decision records stay **embedded** in their topic file, inside a `## Decision Record`
-section, as one or more `## B.N <Title>` subsections (e.g. `04-structural-boundaries.md`
-has `## Decision Record` → `## B.1 Boundary Identity`). Each `B.N` is cross-linked from
-that Part's entry in `docs/spec/README.md`'s Contents list.
+Decision records stay **embedded** in whichever design-doc file already
+covers the topic, inside a `## Decision Record` section, as one or more
+`## <N> <Title>` subsections (e.g. a file about a config-file format
+decision would have `## Decision Record` → `## 1 Choosing a config format`).
+If the project has no per-topic design-doc structure yet, keep them in a
+dedicated project decision log instead.
 
-**Never extract a decision record to a separate file, regardless of size.** This is an
-intentional, confirmed design choice — legibility problems are handled by the
-conventions below (subgraphs, orientation, chain summaries), not by moving content out
-of its topic file.
+**Never extract a decision record to a separate file, regardless of
+size.** This is an intentional, confirmed design choice — legibility
+problems are handled by the conventions below (subgraphs, orientation,
+chain summaries), not by moving content out of its topic file.
 
 ## Creating a new decision record
 
-1. Check the numbering registry at the top of
-   `docs/spec/appendix-b-notation-and-cross-cutting.md` for the next available `B.N`.
-2. Add `## B.N <Title>` at the end of the topic file's existing `## Decision Record`
-   section (create that section, right after the file's prose, if this is the file's
-   first record).
-3. Write one `flowchart TD` (or `LR` if 3+ issues from the start — see orientation rule
-   below) Mermaid block following the legend and ID convention below.
+1. Check the numbering registry for the next available number, wherever
+   the project keeps one (a table of assigned IDs/titles/files, plus a
+   "next available number" line, typically at the top of a decisions
+   index file — or simply the highest existing number in the project if
+   no such registry exists yet).
+2. Add `## <N> <Title>` at the end of the topic file's existing
+   `## Decision Record` section (create that section, right after the
+   file's prose, if this is the file's first record).
+3. Write one `flowchart TD` (or `LR` if 3+ issues from the start — see
+   orientation rule below) Mermaid block following the legend and ID
+   convention below.
 4. Add the chain-summary line if the diagram has 2+ Issue nodes.
-5. Update the Part's entry in `docs/spec/README.md`'s Contents list to mention the new
-   `B.N <Title>`.
-6. Update the numbering registry table in Appendix B (new row + bump "Next available
-   number").
-7. If the decision is load-bearing (later decisions would break if this one were
-   reversed), add or extend its chain in §B.10.
-8. Cross-check: does any `CON` node correspond to a rejected alternative that belongs in
-   Appendix A? Add a row there if it's missing (§B.12's cross-check rule).
+5. If the project keeps a numbering registry or a cross-topic index,
+   update it with the new record's number, title, and file.
+6. If the decision is load-bearing (later decisions would break if this
+   one were reversed), add or extend its chain — see "Load-bearing
+   chains" below.
+7. Cross-check, optionally: if the project also keeps a plain table of
+   ideas rejected without a full IBIS diagram, check any new CON node
+   against it — add a row there if it's missing.
 
 ## Revising an existing decision
 
-Per §B.12: **do not edit existing nodes or edges** beyond the one permitted exception
-below.
+**Do not edit existing nodes or edges** beyond the one permitted
+exception below (see "Maintaining records").
 
-1. Add a new `subgraph` for the new Issue, continuing the Issue-scoped ID prefix (see
-   below).
-2. Draw a dotted arrow (`-.->`) from the old Decision node to the new Issue node.
-3. **Permitted exception:** relabel the superseded Decision node in place —
-   `D1([SUPERSEDED — see D6 — DECIDED ...])`. This is the only in-place edit §B.12
-   allows; every other change is additive. None of the current diagrams demonstrate this
-   yet, since all existing chains are forward-consequence chains, not reversals — treat
-   this rule as documented but not yet exercised.
-4. Re-check §B.10 — is the decision being revised part of a load-bearing chain? If so,
-   flag the downstream decisions that may need re-justification before proceeding.
-5. Update Appendix A if a previously-accepted position is now rejected.
+1. Add a new `subgraph` for the new Issue, continuing the Issue-scoped ID
+   prefix (see below).
+2. Draw a dotted arrow (`-.->`) from the old Decision node to the new
+   Issue node.
+3. **Permitted exception:** relabel the superseded Decision node in
+   place — `D1([SUPERSEDED — see D6 — DECIDED ...])`. This is the only
+   in-place edit allowed; every other change is additive.
+4. Re-check whether the decision being revised is part of a load-bearing
+   chain (see "Load-bearing chains" below). If so, flag the downstream
+   decisions that may need re-justification before proceeding.
+5. Update the rejected-ideas table (if the project keeps one) if a
+   previously-accepted position is now rejected.
 
 ## Legibility rules
 
-Apply all of these to new and revised diagrams. `10-the-alias-manager.md`'s **B.4
-(Where the Alias Ledger Lives)** is the canonical worked example — the longest chain (5
-issues), retrofitted first.
+Apply all of these to new and revised diagrams.
 
 1. **Chain summary line.** Immediately above any diagram with 2+ Issue nodes, add one
    plain-prose line naming the chain in order:
-   `**Chain:** I1 blast radius → I2 watermark scope → I3 ledger location → I4 index role → I5 multi-device.`
+   `**Chain:** I1 file format → I2 schema validation → I3 migration strategy.`
    Skip this for single-issue diagrams — it adds no value there.
 
 2. **Per-Issue `subgraph` grouping.** Wrap each Issue's cluster (its Issue node, its
@@ -109,20 +114,90 @@ issues), retrofitted first.
 5. **Superseded-decision marking.** When a past Decision is genuinely overturned — not
    just "forced a new issue," which is the normal forward-consequence case — relabel the
    old stadium node in place: `D1([SUPERSEDED — see D6 — DECIDED ...])`. This is the one
-   edit §B.12 explicitly permits alongside adding the new Issue node. No current diagram
-   demonstrates this pattern; apply it only when a decision is truly reversed, not
-   extended.
+   edit allowed alongside adding the new Issue node. Apply it only when a decision is
+   truly reversed, not extended.
+
+### Worked example
+
+A minimal 2-issue diagram about choosing a config-file format, demonstrating the
+subgraph/chain-summary/ID conventions in practice:
+
+**Chain:** I1 config format → I2 schema validation.
+
+```mermaid
+flowchart TD
+    subgraph S1["I1: Which file format should the project's config use"]
+        I1{{Which file format should the project's config use}}
+        P1[JSON]
+        P2[YAML]
+        I1 --> P1
+        I1 --> P2
+        C1(CON YAML has no native parser in the target runtime)
+        P2 --> C1
+        A1(PRO JSON has a native parser with zero dependencies)
+        A2(PRO JSON's stricter grammar leaves less room for ambiguous indentation bugs)
+        P1 --> A1
+        P1 --> A2
+        D1([DECIDED JSON])
+        P1 ==> D1
+    end
+    D1 -.-> I2
+    subgraph S2["I2: Should the config be schema-validated at load time"]
+        I2{{Should the config be schema-validated at load time}}
+        P2a[No validation, trust the file]
+        P2b[Validate against a JSON Schema on load]
+        I2 --> P2a
+        I2 --> P2b
+        C2a(CON A malformed config fails silently deep inside unrelated code)
+        P2a --> C2a
+        A2a(PRO A validation error at load time points directly at the bad field)
+        P2b --> A2a
+        D2([DECIDED validate on load])
+        P2b ==> D2
+    end
+```
+
+## Load-bearing chains
+
+Some decisions are load-bearing — later decisions assume them and would
+break if reversed in isolation. Track these as a small `flowchart LR`
+chaining short decision-name nodes with `-->`, kept wherever the
+project's numbering registry lives (or alongside the decision records
+themselves if no registry exists).
+
+```mermaid
+flowchart LR
+    N1[Config format is JSON]
+    N2[Schema validation runs on load]
+    N3[Invalid config aborts startup with a pointed error]
+    N1 --> N2 --> N3
+```
+
+Before overturning any decision, check whether it appears in one of these
+chains — reversing it in isolation may silently break every decision
+downstream of it.
+
+## Maintaining records
+
+Do not edit an existing graph in place — add a new Issue node whose
+incoming dotted arrow comes from the decision that forced the reopening,
+and mark the superseded Decision node in place (the one permitted
+exception). The value is the trail, not just the current state.
+
+If the project keeps a separate rejected-ideas table, every entry there
+should resolve to a CON node somewhere; if it doesn't, the rejection was
+never actually argued.
 
 ## Checklist
 
 Before committing a new or revised decision record, confirm:
 
-- [ ] Numbering checked against the Appendix B registry
+- [ ] Numbering checked against the project's own registry, if one exists
 - [ ] Legend shapes correct (hexagon/rectangle/rounded/stadium)
 - [ ] Chain summary line present if 2+ issues
 - [ ] Subgraphs present if 2+ issues, with unique IDs
 - [ ] Orientation correct for issue count (`TD` for 1–2, `LR` for 3+)
-- [ ] `docs/spec/README.md` Contents entry updated
-- [ ] Appendix B numbering registry updated
-- [ ] §B.10 (load-bearing chains) checked and updated if relevant
-- [ ] Appendix A cross-checked for any newly-argued rejection
+- [ ] Project's own numbering registry updated, if one exists
+- [ ] Cross-topic index updated, if the project keeps one
+- [ ] Load-bearing chains checked and updated if relevant
+- [ ] Rejected-ideas table cross-checked for any newly-argued rejection, if the project keeps one

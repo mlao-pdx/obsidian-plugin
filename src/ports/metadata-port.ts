@@ -1,19 +1,12 @@
 /**
  * `MetadataPort` — resolved frontmatter/backlinks/tags for a given path.
  *
- * Layer 3's boundary-resolution and Note-Property reading depend on this
- * interface, never on Obsidian's `metadataCache` directly. The adapter
+ * Domain logic that resolves note metadata depends on this interface,
+ * never on Obsidian's `metadataCache` directly. The adapter
  * implementation (outside `src/core`/`src/ports`) wraps `metadataCache`.
  *
- * Shape, not contract: fields will grow as Layers 1–4 are built. No
- * implementation lives here.
- *
- * @see docs/spec/04-structural-boundaries.md §4.2
- * @see docs/spec/12-architecture.md §12.3
- * @remarks
- * This decision is unchanged from Appendix B §B.7 D2 ("Note Properties are
- * frontmatter only") — only the seam (a port interface instead of a direct
- * `metadataCache` read) is new.
+ * Shape, not contract: fields will grow as more of this interface's
+ * consumers are built. No implementation lives here.
  */
 export interface NoteMetadata {
 	/** Vault-relative path this metadata describes. */
@@ -39,8 +32,6 @@ export interface MetadataPort {
 	 * Subscribe to metadata changes for any tracked path. Mirrors
 	 * `metadataCache.on('changed' | 'resolved')` without exposing the
 	 * Obsidian event object to core.
-	 *
-	 * @see docs/spec/12-architecture.md §12.1
 	 */
 	onMetadataChanged(listener: (path: string) => void): () => void;
 }

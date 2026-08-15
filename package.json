@@ -1,7 +1,7 @@
 {
-  "name": "narradin",
+  "name": "obsidian-sample-plugin",
   "version": "0.1.0",
-  "description": "Flexible organization and visualization of long form fiction.",
+  "description": "An empty Obsidian plugin template with a hexagon architecture.",
   "main": "main.js",
   "type": "module",
   "scripts": {

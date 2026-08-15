@@ -19,12 +19,19 @@
  *
  * Shape, not contract: no implementation lives here.
  *
- * @see docs/spec/appendix-a-rejected-decisions.md
- * @see docs/spec/appendix-b-notation-and-cross-cutting.md §B.16
  * @remarks
  * This is independent of `__DEV__` (`types/globals.d.ts`): `__DEV__`
  * strips code from the production bundle entirely, so it cannot help a
- * real user capture a real bug.
+ * real user capture a real bug. `LoggerPort` ships in the production
+ * bundle and is silent by default until a user opts in. The log lives
+ * inside the vault (not the OS filesystem or a network endpoint) so a
+ * non-technical user can find and attach it to a bug report, and so
+ * nothing is transmitted over a network. The log file is plain text, not
+ * markdown, so it is never picked up by the plugin's own markdown-file
+ * processing. This port is hand-written rather than backed by a logging
+ * library, because no such library ships an Obsidian-vault transport
+ * (one would be hand-written regardless) and a facade over another
+ * logger would just duplicate this seam.
  *
  * Neither this interface nor its adapter inspects arguments for vault
  * content — only the caller knows which arguments are vault-derived.

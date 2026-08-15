@@ -17,8 +17,8 @@ describe('shouldLog', () => {
 
 describe('formatLogLine', () => {
 	it('formats timestamp level and message with no meta suffix when meta is omitted', () => {
-		const line = formatLogLine('2026-08-09T00:00:00.000Z', 'info', 'Narradin loaded');
-		expect(line).toBe('2026-08-09T00:00:00.000Z [INFO] Narradin loaded\n');
+		const line = formatLogLine('2026-08-09T00:00:00.000Z', 'info', 'plugin loaded');
+		expect(line).toBe('2026-08-09T00:00:00.000Z [INFO] plugin loaded\n');
 	});
 
 	it('appends meta as JSON when present', () => {

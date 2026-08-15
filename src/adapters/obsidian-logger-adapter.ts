@@ -2,21 +2,7 @@ import { App, Notice, normalizePath } from 'obsidian';
 import type { LoggerPort, LogLevel } from '@ports/logger-port';
 import { formatLogLine, shouldLog } from './logger-format';
 
-/**
- * Default `_narradin` folder path.
- *
- * @see docs/spec/02-configuration-model.md §2.3
- * @remarks
- * The Configuration Model's full settings (Part 2) are not built yet, so
- * this is a constant rather than a read of a user setting; once that
- * settings surface exists, wire it through here instead of hardcoding.
- */
-const DEFAULT_NARRADIN_FOLDER = '_narradin';
-const LOGS_SUBFOLDER = 'logs';
-const LOG_FILE_NAME = 'narradin.log';
-const BACKUP_FILE_NAME = 'narradin.log.1';
-
-/** Rotation cap, per the Developer Logging & Metrics plan Decision 3. */
+/** Rotation cap, in bytes, before the log file is backed up and truncated. */
 const ROTATION_CAP_BYTES = 5 * 1024 * 1024;
 
 export interface ObsidianLoggerSettings {
@@ -33,16 +19,20 @@ export interface ObsidianLoggerSettings {
  * `LoggerPort`); this adapter never inspects `message`/`meta` for vault
  * content.
  *
- * @see docs/spec/appendix-b-notation-and-cross-cutting.md §B.16
  * @remarks
  * Writing via `Vault.adapter` instead of `Vault.create`/`Vault.modify`
  * means the plain-text log file never triggers a `vault.on('modify')`
- * event or gets treated as an indexed note.
+ * event or gets treated as an indexed note. `logsFolderPath`/`logPath`/
+ * `backupPath`/`logFileName`/`backupFileName` are public so
+ * `settings.ts`'s diagnostics copy can read them instead of duplicating
+ * the derived paths as literal strings.
  */
 export class ObsidianLoggerAdapter implements LoggerPort {
-	private readonly logsFolderPath: string;
-	private readonly logPath: string;
-	private readonly backupPath: string;
+	readonly logsFolderPath: string;
+	readonly logPath: string;
+	readonly backupPath: string;
+	readonly logFileName: string;
+	readonly backupFileName: string;
 
 	/**
 	 * Serializes `writeLine()` calls so concurrent `log()` calls can never
@@ -65,11 +55,13 @@ export class ObsidianLoggerAdapter implements LoggerPort {
 		 * without needing to re-wire this adapter.
 		 */
 		private readonly getSettings: () => ObsidianLoggerSettings,
-		narradinFolder: string = DEFAULT_NARRADIN_FOLDER,
+		pluginId: string,
 	) {
-		this.logsFolderPath = normalizePath(`${narradinFolder}/${LOGS_SUBFOLDER}`);
-		this.logPath = normalizePath(`${this.logsFolderPath}/${LOG_FILE_NAME}`);
-		this.backupPath = normalizePath(`${this.logsFolderPath}/${BACKUP_FILE_NAME}`);
+		this.logFileName = `${pluginId}.log`;
+		this.backupFileName = `${pluginId}.log.1`;
+		this.logsFolderPath = normalizePath(`_${pluginId}/logs`);
+		this.logPath = normalizePath(`${this.logsFolderPath}/${this.logFileName}`);
+		this.backupPath = normalizePath(`${this.logsFolderPath}/${this.backupFileName}`);
 	}
 
 	log(level: LogLevel, message: string, meta?: Record<string, unknown>): void {
@@ -108,7 +100,7 @@ export class ObsidianLoggerAdapter implements LoggerPort {
 		}
 	}
 
-	/** Rotates `narradin.log` to `narradin.log.1`, overwriting any prior backup. */
+	/** Rotates the log file to its backup path, overwriting any prior backup. */
 	private async rotate(): Promise<void> {
 		const adapter = this.app.vault.adapter;
 		if (await adapter.exists(this.backupPath)) {
@@ -117,7 +109,7 @@ export class ObsidianLoggerAdapter implements LoggerPort {
 		await adapter.rename(this.logPath, this.backupPath);
 	}
 
-	/** Deletes `narradin.log` and `narradin.log.1`, if present. */
+	/** Deletes the log file and its backup, if present. */
 	async clearLogs(): Promise<void> {
 		const adapter = this.app.vault.adapter;
 		if (await adapter.exists(this.logPath)) {
@@ -129,8 +121,8 @@ export class ObsidianLoggerAdapter implements LoggerPort {
 	}
 
 	/**
-	 * Reveals `<_narradin>/logs/` in Obsidian's file explorer. Falls back to
-	 * a `Notice` stating the path when the folder does not exist yet (no
+	 * Reveals the log folder in Obsidian's file explorer. Falls back to a
+	 * `Notice` stating the path when the folder does not exist yet (no
 	 * log has been written) or when the file-explorer view is unavailable.
 	 */
 	async revealLogFolder(): Promise<void> {

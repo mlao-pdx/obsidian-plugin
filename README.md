@@ -1,19 +1,19 @@
-# Narradin
+# Obsidian Sample Plugin
 
-Flexible organization and visualization of long form fiction: Show the brilliance you know lies underneath all your madness and chaos.
+An empty Obsidian plugin template with a hexagon architecture:
+`src/core` (pure domain logic) and `src/ports` (technology-agnostic
+interfaces) never import `obsidian` or `dexie` at runtime; `src/adapters`
+implements those ports against the real Obsidian API and Dexie. The
+template retains Vitest (unit + property/fast-check tiers), Prettier,
+ESLint (including the boundary rule enforcing the hexagon), esbuild,
+`__DEV__`-gated dev-only code, Husky git hooks, license auditing, and the
+TSDoc `@remarks` convention.
 
-> **Status: pre-alpha.** Not in the community plugin catalogue. Expect breakage.
+> **Status: template.** Not in the community plugin catalogue.
 
 ## Support policy
 
-- A desktop-only plugin. No mobile support, on any OS.
-- Primarily tested against macOS, but should work on Windows and Linux just fine.
-- [Bug reports welcome](https://github.com/mlao-pdx/obsidian-narradin).
-- This is an opinionated plugin, feature requests are considered only when a good fit.
-- PRs for Windows or Linux bug-fixes are considered if they include a clean
-  reproduction test, match coding practices, and do not change existing behavior.
-
-This is a personal tool, made available in case others find it useful.
+- A desktop-only plugin template. No mobile support, on any OS.
 
 ## Testing
 
@@ -87,10 +87,6 @@ Lint runs on [ESLint](https://eslint.org/); config lives in
   `verbatimModuleSyntax`) already do lint-adjacent work — `tsc` (run via
   `npm run typecheck` or `npm run build`) catches things ESLint won't.
 
-## Funding
-
-If you want to buy me a coffee, please consider donating to the [Signal Foundation](https://signal.org/donate/) instead. Or support the third-party plugins this one leans on. You can find them in the credits.
-
 ## Licence
 
 0BSD — see [LICENSE](LICENSE) and [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
@@ -98,5 +94,3 @@ If you want to buy me a coffee, please consider donating to the [Signal Foundati
 ## Credits
 
 Scaffolded from [obsidian-sample-plugin](https://github.com/obsidianmd/obsidian-sample-plugin) (0BSD).
-
-Designed to work along side Linter, Notebook Navigator, Note Toobar, Style Settings, and Templater.

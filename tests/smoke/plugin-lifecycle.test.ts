@@ -3,16 +3,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('obsidian', () => import('../support/mock-obsidian-app'));
 
-import NarradinPlugin from '../../src/main';
+import MyPlugin from '../../src/main';
 import { createMockApp, createMockManifest } from '../support/mock-obsidian-app';
 
-function createPlugin(): NarradinPlugin {
+function createPlugin(): MyPlugin {
 	const app = createMockApp() as App;
 	const manifest = createMockManifest() as PluginManifest;
-	return new NarradinPlugin(app, manifest);
+	return new MyPlugin(app, manifest);
 }
 
-describe('NarradinPlugin lifecycle (smoke)', () => {
+describe('MyPlugin lifecycle (smoke)', () => {
 	beforeEach(() => {
 		// obsidian.d.ts declares `activeDocument` as an ambient global that
 		// the real Obsidian host provides at runtime; `onload()` reads it
@@ -47,5 +47,11 @@ describe('NarradinPlugin lifecycle (smoke)', () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 		expect(plugin.loggerAdapter).toBeDefined();
+	});
+
+	it('derives the log folder path from the manifest id, not a hardcoded literal', async () => {
+		const plugin = createPlugin();
+		await plugin.onload();
+		expect(plugin.loggerAdapter.logsFolderPath).toBe('_sample-plugin/logs');
 	});
 });

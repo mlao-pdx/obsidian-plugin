@@ -223,10 +223,10 @@ never the legacy imperative `display()` override.
 
 ```ts
 import { App, PluginSettingTab } from 'obsidian';
-import NarradinPlugin from './main';
+import MyPlugin from './main';
 
-export class NarradinSettingTab extends PluginSettingTab {
-	constructor(app: App, private plugin: NarradinPlugin) {
+export class SampleSettingTab extends PluginSettingTab {
+	constructor(app: App, private plugin: MyPlugin) {
 		super(app, plugin);
 	}
 
@@ -249,7 +249,7 @@ export class NarradinSettingTab extends PluginSettingTab {
 }
 ```
 
-- Register with `this.addSettingTab(new NarradinSettingTab(this.app, this))`
+- Register with `this.addSettingTab(new SampleSettingTab(this.app, this))`
   in `onload()`, same as before.
 - A `control` definition (`key` names a property on `this.plugin.settings`)
   reads, writes, and calls `saveData()` for you — no `onChange` plumbing.
@@ -290,7 +290,7 @@ plugins instead of duplicated.
 import { App, PluginSettingTab, SecretComponent, Setting } from 'obsidian';
 
 // Settings interface stores the secret's *name*, not its value.
-interface NarradinSettings {
+interface MySettings {
 	apiKeySecretName: string;
 }
 
@@ -356,31 +356,6 @@ function confirmDelete(app: App, itemName: string, onConfirm: () => void) {
   with `setCta()` for a destructive _primary_ action. `setWarning()` still
   exists but is deprecated in favor of `setDestructive()`.
 
-## Notebook Navigator / Templater compatibility
-
-No new fetch needed here — the contract already lives in spec prose; don't
-re-derive it, cross-reference it:
-
-- **`sort_index` / `folder_index`** (Notebook Navigator manual-sort
-  compatibility): `docs/spec/02-configuration-model.md` §2.3,
-  `docs/spec/04-structural-boundaries.md` §4.3,
-  `docs/spec/07-hierarchy-and-narrative-order.md` §7.3.
-- **Templater** (template-based element insertion): `docs/spec/11-element-insertion.md` §11.
-
-> ⚠️ **Spec-drift flag, not yet resolved.** The spec's `sort_index` contract
-> describes Notebook Navigator writing a `sort_index` frontmatter property per
-> file during drag-and-drop manual sort (interpolating/renumbering into the
-> ~1000 range, treating `0` as null). Notebook Navigator's _current_ own docs
-> (README, FAQ, `docs/storage-architecture.md`, `docs/metadata-pipeline.md`,
-> `docs/api-reference.md` as of their "Updated: July 2026" revision) describe
-> manual/custom sort as a per-folder **sort-mode override** stored in NN's own
-> settings/local-storage (`folderSortOverrides`), not a `sort_index`
-> frontmatter key written to individual notes — and none of the fetched pages
-> mention `sort_index` at all. This may mean the spec is describing an older
-> NN version's behavior. Do not silently resolve this: treat it as an open
-> spec question and confirm against a live Notebook Navigator install before
-> relying on the exact `sort_index` mechanics in `07-hierarchy-and-narrative-order.md`.
-
 ## Plugin review guidelines (why, not just what)
 
 Source: `https://docs.obsidian.md/plugins/releasing/plugin-guidelines` — the
@@ -415,8 +390,8 @@ below is a correctness/security reason, not a style nitpick:
 - **`const`/`let` over `var`; `async`/`await` over `.then()` chains** —
   already covered by `AGENTS.md`'s TypeScript rules, repeated here because
   it's an explicit review criterion, not just house style.
-- **No default hotkeys** (`Command.hotkeys`) — reinforces the existing
-  Narradin rule (see `AGENTS.md`): a default can conflict with the user's own
+- **No default hotkeys** (`Command.hotkeys`) — reinforces this project's
+  rule (see `AGENTS.md`): a default can conflict with the user's own
   bindings or another plugin's, and there is no cross-platform-safe default
   to pick. Binding is always the user's choice, made in Obsidian's own
   Hotkeys settings.

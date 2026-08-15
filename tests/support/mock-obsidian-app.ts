@@ -179,7 +179,7 @@ export class MarkdownView {}
 export class Editor {}
 export class App {}
 
-/** A minimal `app` value sufficient for `NarradinPlugin`'s current `onload()`. */
+/** A minimal `app` value sufficient for `MyPlugin`'s current `onload()`. */
 export function createMockApp(): unknown {
 	return {
 		workspace: {
@@ -188,11 +188,11 @@ export function createMockApp(): unknown {
 	};
 }
 
-/** A minimal `manifest` value sufficient to construct `NarradinPlugin`. */
+/** A minimal `manifest` value sufficient to construct `MyPlugin`. */
 export function createMockManifest(): unknown {
 	return {
-		id: 'narradin',
-		name: 'Narradin',
+		id: 'sample-plugin',
+		name: 'Sample Plugin',
 		version: '0.0.0-test',
 		minAppVersion: '0.0.0',
 		author: 'test',

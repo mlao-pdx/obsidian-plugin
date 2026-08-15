@@ -1,9 +1,9 @@
 {
-  "id": "narradin",
-  "name": "Narradin",
-  "version": "0.1.0",
+  "id": "sample-plugin",
+  "name": "Sample Plugin",
+  "version": "1.0.0",
   "minAppVersion": "1.13.0",
-  "description": "Flexible organization and visualization of long form fiction.",
-  "author": "B.P. 'Beppie' Shortway",
+  "description": "An empty Obsidian plugin template with a hexagon architecture.",
+  "author": "",
   "isDesktopOnly": true
 }

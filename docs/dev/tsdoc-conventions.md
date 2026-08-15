@@ -9,10 +9,8 @@ the reason explained in section a.
 
 ## a. Tag usage
 
-- `@see` — one or more spec references, in the existing prose format this
-  codebase already uses: `docs/spec/12-architecture.md §12.2`. Point at
-  Appendix B (`§B.18` etc.) when the "why" is a spec-level decision rather
-  than a local implementation detail.
+- `@see` — one or more references to this project's own design docs, if
+  any exist, in whatever citation format the project uses.
 - `@remarks` — **exactly one per symbol, always.** This is a project
   convention that `tsdoc/syntax` cannot enforce on its own: it validates
   TSDoc grammar, but a duplicate `@remarks` tag is not a grammar violation.
@@ -34,9 +32,10 @@ don't need one — don't invent a reason that wasn't there.
 
 Within the single `@remarks` block, each reason is one dated, tagged
 paragraph. When a reason is superseded, keep it — prefixed `SUPERSEDED` —
-below the new entry, oldest at the bottom. This mirrors Appendix B.12's
-"add a new node, mark the old one superseded, never edit in place" rule,
-adapted to fit inside one TSDoc tag instead of a new node in a diagram.
+below the new entry, oldest at the bottom. This mirrors decision-record
+maintenance's "add a new node, mark the old one superseded, never edit in
+place" rule (see the `spec-decision-records` skill), adapted to fit inside
+one TSDoc tag instead of a new node in a diagram.
 
 Reason-tag vocabulary (parenthetical, lowercase, first word of the entry):
 `(bugfix)`, `(perf)`, `(cm6-quirk)`, `(obsidian-idiom)`, `(spec-change)`,
@@ -47,34 +46,34 @@ Worked example:
 
 ```ts
 /**
- * Reads the current Local Scope owner for an entity.
+ * Reads the value for a given key from the resolved config.
  *
- * @see docs/spec/12-architecture.md §12.3
+ * @see docs/dev/config-loading.md
  * @remarks
- * (perf, 2026-09-01) Switched from a `Map<string, ScopeMapRow>` keyed by
- * path to the `entityId`-keyed lookup the port signature now uses, after
+ * (perf, 2026-09-01) Switched from a `Map<string, ConfigRow>` keyed by
+ * file path to the `key`-keyed lookup the port signature now uses, after
  * confirming path-keyed lookups required a full table scan on every
- * rename event.
+ * config reload.
  *
  * SUPERSEDED (design, 2026-08-12): Originally kept a path-keyed cache here
- * because paths were the only identifier Layer 2 had available at the
- * time this was written. No longer applies once `PersistencePort`'s
- * `id`-based API (§12.3) was implemented.
+ * because paths were the only identifier available at the time this was
+ * written. No longer applies once the config port's `key`-based API was
+ * implemented.
  */
 ```
 
-- A `(spec-change)` entry should name the Appendix B record it traces to
-  (e.g. "per B.18, no suppression check is performed here at all") rather
-  than re-explain the decision — the spec is the source of truth for _why
-  the design is what it is_; the code comment is for _why this line is
-  what it is_.
+- A `(spec-change)` entry should name whatever design-record or issue this
+  traces to, if one exists (e.g. "per decision record 3, no suppression
+  check is performed here at all") rather than re-explain the decision —
+  the design doc is the source of truth for _why the design is what it
+  is_; the code comment is for _why this line is what it is_.
 - Do not add a `SUPERSEDED` entry for the very first reason a symbol was
   written for — only once a second reason replaces it.
 
 ## c. Flagging a known inconsistency (not a normal `@remarks` entry)
 
-When a doc comment or shape is discovered to contradict the current spec
-(e.g. describing a design that Appendix B has since retired) and fixing it
+When a doc comment or shape is discovered to contradict the current design
+docs (e.g. describing a design that has since been retired) and fixing it
 is out of scope for the change at hand, mark it explicitly with a
 `(spec-change)` entry prefixed `FLAGGED` instead of silently normalizing the
 prose as if the old design were still current:
@@ -83,8 +82,8 @@ prose as if the old design were still current:
 /**
  * @remarks
  * (spec-change, 2026-08-10) FLAGGED: this interface still describes a
- * design Decision Record B.18 retired in full. Needs a follow-up pass to
- * reconcile the shape with the current model (§12.1) — not fixed here.
+ * design decision record 3 retired in full. Needs a follow-up pass to
+ * reconcile the shape with the current model — not fixed here.
  */
 ```
 

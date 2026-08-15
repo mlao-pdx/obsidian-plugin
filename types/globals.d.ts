@@ -10,8 +10,7 @@
  * ships to real users, so it cannot help them capture a real bug. Runtime
  * logging for that purpose is `LoggerPort` (`src/ports/logger-port.ts`):
  * it ships in the production bundle and is silent by default, only
- * writing once a user opts in via Settings. See Decision Record B.16
- * (`docs/spec/appendix-b-notation-and-cross-cutting.md`) for the full
- * two-axes rationale.
+ * writing once a user opts in via Settings. See `src/ports/README.md`
+ * for the full two-axes rationale.
  */
 declare const __DEV__: boolean;

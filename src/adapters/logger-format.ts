@@ -4,9 +4,6 @@ import type { LogLevel } from '@ports/logger-port';
  * Pure formatting/level-filtering helpers for the Obsidian logger adapter
  * (`obsidian-logger-adapter.ts`). Split out with zero `obsidian` import so
  * this logic is unit-testable without mocking the Obsidian API.
- *
- * @see docs/spec/appendix-b-notation-and-cross-cutting.md §B.16 (why this
- * is hand-written instead of a logging library)
  */
 
 /**

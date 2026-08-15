@@ -23,10 +23,11 @@ const ALLOWED_LICENSES = [
 	'Zlib',
 ];
 const NOTICES_FILE = path.resolve(process.cwd(), 'THIRD-PARTY-NOTICES.md');
-// Bare package name (no version pin) so this stays correct across releases —
-// `npm version` bumps package.json's version as part of the normal release
-// flow (see version-bump.mjs), which would desync a pinned "name@version".
-const SELF_PACKAGE = 'narradin';
+// Read from package.json rather than hardcoding, so a project rename never
+// desyncs this exclusion from the actual package name.
+const SELF_PACKAGE = JSON.parse(
+	fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8'),
+).name;
 
 function runLicenseChecker(args) {
 	const result = spawnSync('npx', ['license-checker-rseidelsohn', ...args], { encoding: 'utf8' });
