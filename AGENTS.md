@@ -4,8 +4,6 @@
 
 - Target: Obsidian Community Plugin (TypeScript → bundled JavaScript).
 - Entry point: `src/main.ts`, compiled to `main.js`, loaded by Obsidian.
-- Setup, build, manual install, testing, versioning/release process, and
-  troubleshooting: see `README.md`.
 
 ## Coding conventions
 
@@ -18,8 +16,8 @@
 - Bundle everything into `main.js` (no unbundled runtime deps).
 - Desktop-only plugin (`manifest.json` sets `isDesktopOnly: true`). Node/
   Electron APIs are fine to use. Mobile is explicitly out of scope: not
-  tested, not designed for, and not a goal for the foreseeable future (the
-  Git-backed feature set alone rules it out).
+  tested, not designed for, and not a goal for the foreseeable future. A
+  Git-backed feature set is likewise explicitly out of scope.
 - Prefer `async/await` over promise chains; handle errors gracefully.
 - Never commit build artifacts: `node_modules/`, `main.js`, and other
   generated output must never be tracked in Git.
@@ -91,8 +89,6 @@ Follow Obsidian's Developer Policies and Plugin Guidelines. In particular:
 
 ## Where to look next
 
-- Setup, build, manual install, testing, versioning/release process,
-  troubleshooting, reference links: `README.md`.
 - Example file structure, common task code snippets, UI copy/UX
   guidelines: `obsidian-plugin-patterns` skill.
 - Creating or revising a decision record (IBIS diagrams recording a

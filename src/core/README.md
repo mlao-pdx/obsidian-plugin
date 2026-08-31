@@ -8,11 +8,11 @@ technology directly.
 ## What belongs here
 
 Pure algorithms and domain logic that must stay swappable and
-unit-testable against fakes: business rules, derivations, and plan
-computation that take/return plain data and depend only on `@ports/*`
-interfaces, never on a concrete adapter. If it can be unit-tested with an
-in-memory fake instead of the real Obsidian API or a real Dexie database,
-it belongs here.
+unit-testable against fakes: business rules and derivations that
+take/return plain data and depend only on `@ports/*` interfaces, never on
+a concrete adapter. If it can be unit-tested with an in-memory fake
+instead of the real Obsidian API or a real Dexie database, it belongs
+here.
 
 ## What does not belong here
 

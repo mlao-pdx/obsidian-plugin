@@ -1,8 +1,12 @@
 /**
- * `PersistencePort` — illustrative repository interface for an
- * IndexedDB-backed (Dexie) cache. Replace this with the actual record
- * shapes your project needs; this file exists so `src/ports/` has a
- * concrete example to pair with the `dexie-persistence-adapter` skill.
+ * `PersistencePort` — repository interface for the template's
+ * IndexedDB-backed persistence. Dexie is the template's chosen API layer
+ * over IndexedDB: core code depends on this port, the Dexie-backed
+ * adapter lives in `src/adapters`, and nothing talks to raw IndexedDB
+ * directly. Replace `ExampleRecord` with the record shapes your plugin
+ * actually persists — see the `dexie-persistence-adapter` skill for the
+ * adapter-side schema and transaction patterns. A plugin that persists
+ * nothing can delete this port together with the `dexie` dependency.
  *
  * @remarks
  * Shape, not contract: no implementation lives here. See

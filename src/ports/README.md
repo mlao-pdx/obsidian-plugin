@@ -10,21 +10,17 @@ See `docs/dev/tsdoc-conventions.md` for the doc-comment format (`@see`/
 
 ## Why
 
-`src/core` (domain algorithms and plan computation) must never import
-`obsidian` or `dexie` at runtime. Ports are the seam that makes that
-possible: core depends on a port interface, and an adapter — living outside
-`src/core`/`src/ports` — implements that interface against the real
-Obsidian API or Dexie schema.
+`src/core` (domain logic) must never import `obsidian` or `dexie` at
+runtime. Ports are the seam that makes that possible: core depends on a
+port interface, and an adapter — living outside `src/core`/`src/ports` —
+implements that interface against the real Obsidian API or Dexie schema.
 
 ## Current ports
 
-| Port              | Wraps                                       | Notes                                                                                                 |
-| ----------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `MetadataPort`    | `metadataCache`                             | Reads are expected to stay synchronous/cheap since `metadataCache` is in-memory.                      |
-| `FileContentPort` | `vault.read`/`vault.cachedRead`             | Inherently async; `metadataCache` does not guarantee body-text readiness, hence a separate read path. |
-| `PersistencePort` | Dexie/IndexedDB schema                      | Adapter must not block the calling path — batch writes, use IndexedDB transactions appropriately.     |
-| `VaultWritePort`  | `vault.modify`/`rename`/`delete`            | Execution step only; plan computation stays pure core logic.                                          |
-| `LoggerPort`      | vault-file writes for developer diagnostics | Opt-in, silent by default — see below.                                                                |
+| Port              | Wraps                                       | Notes                                                                                 |
+| ----------------- | ------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `PersistencePort` | Dexie/IndexedDB schema                      | Dexie is the template's chosen API layer over IndexedDB — nothing uses raw IndexedDB. |
+| `LoggerPort`      | vault-file writes for developer diagnostics | Opt-in, silent by default — see below.                                                |
 
 ## Current adapters
 
@@ -43,8 +39,9 @@ The log lives inside the vault (not the OS filesystem or a network
 endpoint) so a non-technical user can find and attach it to a bug report,
 and so nothing is transmitted over a network.
 
-The log file is plain text, not markdown, so it's never picked up by the
-plugin's own markdown-file processing.
+The log file is plain text, not markdown, so Obsidian never indexes it as
+a note and any markdown processing the eventual plugin adds will not pick
+it up.
 
 Vault-derived content in a log line must be wrapped in guillemets
 (`«...»`) by the calling code before reaching `log()`; structural
@@ -61,13 +58,9 @@ provides.
 ## Non-blocking adapters
 
 Ports carry no performance contract themselves — that's the adapter's
-job. `MetadataPort` reads are expected to stay synchronous and cheap
-because `metadataCache` is in-memory. `FileContentPort` reads are
-inherently async (`vault.read`/`vault.cachedRead` already return
-Promises). `PersistencePort` and `VaultWritePort` adapters must not block
-the calling path — batch writes, use IndexedDB transactions
-appropriately, and never synchronously wait on I/O inside a call that
-core logic expects to return quickly.
+job. `PersistencePort` adapters must not block the calling path — batch
+writes, use IndexedDB transactions appropriately, and never synchronously
+wait on I/O inside a call that core logic expects to return quickly.
 
 ## Rules
 

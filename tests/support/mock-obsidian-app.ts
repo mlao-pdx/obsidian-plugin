@@ -1,6 +1,7 @@
 /**
  * Minimal hand-rolled stand-ins for the pieces of the `obsidian` package
- * that `src/main.ts` and `src/settings.ts` import as runtime values.
+ * that `src/main.ts`, `src/settings.ts`, and the logger adapter import as
+ * runtime values.
  *
  * `obsidian` ships types only (`node_modules/obsidian/package.json` has
  * `"main": ""`) — there is no real implementation to load in tests. Tests
@@ -8,38 +9,20 @@
  *
  * `vi.mock('obsidian', () => import('../support/mock-obsidian-app'));`
  *
- * Keep this intentionally small: cover only what `main.ts`/`settings.ts`
- * currently touch (`addRibbonIcon`, `addStatusBarItem`, `addCommand`,
- * `addSettingTab`, `registerDomEvent`, `loadData`/`saveData`, and the
- * `Modal`/`PluginSettingTab`/`Setting` constructors they call, plus
+ * Keep this intentionally small: cover only what those files currently
+ * touch (`addSettingTab`, `loadData`/`saveData`, and the
+ * `PluginSettingTab`/`Setting` constructors they call, plus `Notice` and
  * `normalizePath` for the logger adapter). Grow it only as those files
  * grow — do not pre-build mock surface for unused Obsidian APIs.
  */
 
-export class Component {
-	registerDomEvent(..._args: unknown[]): void {}
-}
-
-export class Plugin extends Component {
+export class Plugin {
 	app: unknown;
 	manifest: unknown;
 
 	constructor(app: unknown, manifest: unknown) {
-		super();
 		this.app = app;
 		this.manifest = manifest;
-	}
-
-	addRibbonIcon(_icon: string, _title: string, _callback: (evt: MouseEvent) => unknown): unknown {
-		return {};
-	}
-
-	addStatusBarItem(): { setText: (text: string) => void } {
-		return { setText: () => {} };
-	}
-
-	addCommand(command: unknown): unknown {
-		return command;
 	}
 
 	addSettingTab(_settingTab: unknown): void {}
@@ -49,21 +32,6 @@ export class Plugin extends Component {
 	}
 
 	async saveData(_data: unknown): Promise<void> {}
-}
-
-export class Modal {
-	app: unknown;
-	contentEl = {
-		setText: (_text: string) => {},
-		empty: () => {},
-	};
-
-	constructor(app: unknown) {
-		this.app = app;
-	}
-
-	open(): void {}
-	close(): void {}
 }
 
 export class Notice {
@@ -175,17 +143,11 @@ export function normalizePath(path: string): string {
 	return path.replace(/\/+/g, '/').replace(/\/$/, '');
 }
 
-export class MarkdownView {}
-export class Editor {}
 export class App {}
 
 /** A minimal `app` value sufficient for `MyPlugin`'s current `onload()`. */
 export function createMockApp(): unknown {
-	return {
-		workspace: {
-			getActiveViewOfType: () => null,
-		},
-	};
+	return {};
 }
 
 /** A minimal `manifest` value sufficient to construct `MyPlugin`. */

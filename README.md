@@ -11,6 +11,17 @@ TSDoc `@remarks` convention.
 
 > **Status: template.** Not in the community plugin catalogue.
 
+## Persistence
+
+The template ships [Dexie](https://dexie.org) as its persistence layer —
+the supported API over IndexedDB, never raw IndexedDB used directly.
+`src/ports/persistence-port.ts` is the technology-agnostic shape `src/core`
+depends on; a Dexie-backed adapter implements it in `src/adapters` (see the
+`dexie-persistence-adapter` skill for schema and transaction patterns). A
+plugin generated from this template that persists nothing can delete the
+port and the `dexie` dependency wholesale; one that persists anything does
+so through Dexie.
+
 ## Support policy
 
 - A desktop-only plugin template. No mobile support, on any OS.
