@@ -11,6 +11,8 @@ TSDoc `@remarks` convention.
 
 > **Status: template.** Not in the community plugin catalogue.
 
+See [Design principles](docs/principles.md) for the 7 guiding choices this template ships with.
+
 ## Persistence
 
 The template ships [Dexie](https://dexie.org) as its persistence layer —

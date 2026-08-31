@@ -5,6 +5,13 @@
 - Target: Obsidian Community Plugin (TypeScript → bundled JavaScript).
 - Entry point: `src/main.ts`, compiled to `main.js`, loaded by Obsidian.
 
+## Design principles
+
+See `docs/principles.md` for the full text. In short: be idiomatic to Obsidian; judge but don't
+sentence (inform, don't block, unless validation is the feature); vault is truth; embrace chaos
+outside your narrow schema; opt-in before touching; read forgivingly/write critically; never leave
+the vault worse than a manual edit would. Deviations must be well-reasoned.
+
 ## Coding conventions
 
 - TypeScript with `"strict": true`.
@@ -89,6 +96,7 @@ Follow Obsidian's Developer Policies and Plugin Guidelines. In particular:
 
 ## Where to look next
 
+- Design principles: `docs/principles.md`.
 - Example file structure, common task code snippets, UI copy/UX
   guidelines: `obsidian-plugin-patterns` skill.
 - Creating or revising a decision record (IBIS diagrams recording a
