@@ -1,27 +1,35 @@
+---
+completion: 0%
+---
+
 # Principles
 
-These are the core operating principles when making choices as to how Narradin works:
+These are the core principles considered when making choices whether and how to implement features in Narradin. While these are not absolute, any deviation from them should be well-reasoned.
+
+## Idiomatic whenever possible
+
+Narradin is idiomatic to Obsidian's way of doing things, in particular using Obsidian preferred access and change patterns, and the official APIs. This includes using notes and their frontmatter as a user interface.
+
+## Judge, don't sentence
+
+Narradin cannot distinguish a craft weakness from a deliberate technique. It does not stop and wait for the user to fix or explain it. It simply communicates what is found in the vault through logging, notification, dashboard, or a combination thereof, and moves on.
 
 ## Vault is truth
 
-All input into Narradin comes either from the vault or from you. If you uninstall Narradin then the only content you will lose are its settings. In addition Narradin tries hard to remain idiomatic to the Obsidian way of doing things.
+All input into Narradin comes either from the vault or from the user. If Narradin is uninstalled then the only content lost are its settings.
+
+## Embrace chaos
+
+Narradin makes sense of the vault as-is; it does not prevent the chaos the user desires. But, the structure Narradin needs, it enforces rigidly, so that everything else can be chaotic. Like any sewage procesing plant, what comes out of Narradin depends on what is put into it.
 
 ## Opt-in first
 
-Narradin only reads that part of your vault that you point it to and only changes your vault when you have asked it to.
-
-## Embrace the Chaos
-
-Narradin makes sense of the vault; it does not prevent the chaos you desire. But, whatever it does enforce, it does rigidly, precisely so everything else can be chaotic with minimal risk
+Narradin does not read minds, nor anticipates, it only touches what it has been asked to touch.
 
 ## Read forgivingly, write critically
 
-Narradin will match liberally when trying to gain insights into the chaos. But, it is pedantically precise and cautious when changing your notes.
+Narradin will match liberally when trying to gain insights from the vault. But, it is pedantic and cautious when changing the vault.
 
 ## Never Worse Than Manual
 
-No automated write may leave the vault in a state worse than an honest manual effort would have.
-
-## Judge, but don't sentence
-
-Narradin cannot distinguish a craft weakness from a deliberate technique — head-hopping within a scene or nesting a series within a book — it simply reports the observation. It does not stop and wait for you to fix it. That is your decision.
+No automated write may leave the vault in a state worse than an honest manual effort would have. I.e. if a valuable process cannot be reliably rolled back, then that process is allowed to fail midway. The criteria is that the process must leave the vault in a state from which the user can finish the job themselves.

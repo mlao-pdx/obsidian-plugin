@@ -4,9 +4,9 @@ Players are the story elements that propel the story forward, like characters, l
 
 ## Player MoC
 
-The [[Narradin#Narradin|Narradin]] settings allow configuration of zero or more [[~OLD#Map of content (MoC)|MoCs]] to designate a note as a player entity by setting the [[Narradin#entity file property|entity file property]] as a link to one of these MoCs.
+The [[Narradin#Narradin|Narradin]] settings allow configuration of zero or more [[Narradin#Map of content (MoC)|MoCs]] to designate a note as a player entity by setting the [[Narradin#entity file property|entity file property]] as a link to one of these MoCs.
 
-The player MoCs the user defines have no inherent order and as such are rendered on the settings in [[Narradin#natural order|natural order]].
+The player MoCs the user defines have no inherent order and as such are rendered on the settings in [[Narradin#Natural order|natural order]].
 
 If the user wants multiple names for a single player MoC, then they should add aliases to the player MoC note. They can then describe how the name and alias(es) differ semantically in the body text of the note. ([[Principles#Vault is truth|Vault is truth]])
 

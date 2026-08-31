@@ -1,10 +1,10 @@
 # Companion
 
-Companions are a different kind of notes in [[Narradin#Narradin|Narradin]]. They are support notes for the three main entity types [[Narrative]], [[Player]], and [[Plot]]. Their content tends to be things like scene beats, research, a settings map, planning, and so on.
+Companions are a different kind of notes in [[Narradin#Narradin|Narradin]]. They are support notes with their content tends to be things like scene beats, research, a settings map, planning, and so on.
 
 ## Companion MoC
 
-The [[Narradin#Narradin|Narradin]] settings allow configuration of zero or more [[~OLD#Map of content (MoC)|MoCs]] to designate a note as a companion entity by setting the [[Narradin#entity file property|entity file property]] as a link to one of these MoCs.
+The [[Narradin#Narradin|Narradin]] settings allow configuration of zero or more [[~OLD#Map of content (MoC)|MoCs]] to designate a note as a companion entity by setting the [[Entity|entity]] as a link to one of these MoCs.
 
 The companion MoCs the user defines have no inherent order and as such are rendered on the settings in [[Narradin#natural order|natural order]].
 
@@ -25,4 +25,4 @@ An example companion MoC mapping:
 
 ## Companion suffix
 
-Companion notes do not exist on their own. They are always tied to a [[Narrative]], [[Player]], or [[Plot]] note. As such a companion note has the same base name as its [[Narradin#Anchor Note|anchor note]] followed by a double underscore (`__`) and its suffix as defined in the settings. E.g. `scene__beat.md` for a beat sheet.
+Companion notes do not exist on their own. They are always tied to a [[Host note|host note]]. As such a companion note resides in the same folder and has the same base name as its host note, followed by a double underscore (`__`) and its companion suffix as defined in the settings. E.g. `someScene__beat.md` for a beat sheet for the host note `someScene.md`.
