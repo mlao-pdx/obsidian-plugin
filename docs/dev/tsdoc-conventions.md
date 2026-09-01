@@ -33,9 +33,9 @@ don't need one — don't invent a reason that wasn't there.
 Within the single `@remarks` block, each reason is one dated, tagged
 paragraph. When a reason is superseded, keep it — prefixed `SUPERSEDED` —
 below the new entry, oldest at the bottom. This mirrors decision-record
-maintenance's "add a new node, mark the old one superseded, never edit in
-place" rule (see the `spec-decision-records` skill), adapted to fit inside
-one TSDoc tag instead of a new node in a diagram.
+maintenance's "reject the old position, link the new one with
+`wins over`" rule (see the `spec-decision-records` skill), adapted to
+fit inside one TSDoc tag.
 
 Reason-tag vocabulary (parenthetical, lowercase, first word of the entry):
 `(bugfix)`, `(perf)`, `(cm6-quirk)`, `(obsidian-idiom)`, `(spec-change)`,

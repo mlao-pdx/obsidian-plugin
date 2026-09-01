@@ -1,203 +1,155 @@
 ---
 name: spec-decision-records
-description: How to write and maintain IBIS decision-record diagrams recording a design decision's reasoning and history — notation, numbering, load-bearing chains, and legibility conventions. Load when writing or reviewing a Decision Record, proposing to add/revisit/overturn a design decision, or checking whether a change touches a load-bearing decision chain.
+description: How to write and maintain IBIS decision-record diagrams recording a design decision's reasoning and history — rev-tagged nodes, typed edge IDs, ACCEPTED/REJECTED badges, `wins over` supersession, and `thus` consequence edges. Load when writing or reviewing a Decision Record, proposing to add/revisit/overturn a design decision, or maintaining an existing record's accepted chain.
 ---
 
 # Decision records (IBIS diagrams)
 
-## Legend
+Structural decisions and their reasoning. These grow — a resolved
+position may reappear as an argument under a later issue.
+
+Decisions are often a spec's tombstone. Removal of entries from a spec —
+invariants, rules, columns, events, whole sections — is recorded in
+decisions with their rationale, and any invariant or rule numbers are
+retired, never re-used. A spec describes the current design only;
+dismissed alternatives live in decisions and are cited from the prose
+only where a current rationale requires it.
+
+One IBIS diagram = one DECISION record = one issue. If a question splits
+into genuinely distinct questions, the old issue stays and a new issue
+opens (a new diagram); if a question gets a better answer, the old
+position is rejected within the same issue. The graph is the record;
+any prose beneath it is commentary, not normative.
 
 This skill is the authoritative source for this notation — update it
-directly if the legend ever changes.
+directly if the notation changes.
 
-| Shape           | IBIS role                                                         |
-| --------------- | ----------------------------------------------------------------- |
-| `{{ hexagon }}` | **Issue** — a question that had to be answered                    |
-| `[ rectangle ]` | **Position** — a candidate answer                                 |
-| `( rounded )`   | **Argument** — PRO or CON, attached to a position                 |
-| `([ stadium ])` | **Decision** — the position taken. Reached by a thick `==>` arrow |
+## Format rules
 
-A dotted arrow (`-.->`) means _this decision forced that issue to be reopened_.
+Each diagram is maintained as a Mermaid `flowchart` graph.
 
-## Where records live
+| #          | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IBIS-1** | An IBIS is bounded by its **issue**. Positions, be they the proposition or an argument, are numbered uniquely within the issue only — `P009` in one issue and `P009` in another are unrelated nodes, and that's fine. An issue is likely to go dormant, but is never considered final.                                                                                                                                                                                           |
+| **IBIS-2** | Every node carries a **rev tag** (`Rev N.N`) in its text — the revision number that was active when it was added.                                                                                                                                                                                                                                                                                                                                                                |
+| **IBIS-3** | The **badge** inside a node's text is the role marker. A proposition (position promoted/demoted by edges) carries `ACCEPTED` or `REJECTED`, judged within the issue. An argument carries `cost` or `benefit`, judged in isolation on its own, e.g. `(Rev 8.6 - cost)`. Shape follows the badge: propositions are stadium nodes `(["..."])`, arguments are rectangles `["..."]`; the issue is a hexagon `{{...}}` and a consequence is a rounded node `(...)`.                    |
+| **IBIS-4** | **Every pro/con edge is labeled `+` or `-`** — a pro or con conclusion on the argument by the position pointing to it.                                                                                                                                                                                                                                                                                                                                                           |
+| **IBIS-5** | **A `wins over` edge encodes supersession.** There is exactly one proposition within a decision with the `ACCEPTED` badge. The current accepted position points to the previously accepted proposition, now badged `REJECTED`, with the label `wins over`. The edge is what makes the history navigable.                                                                                                                                                                         |
+| **IBIS-6** | **Link IDs are typed prefixes + a 3-digit suffix, chosen once per edge, never re-used within an issue, starting at `001` per prefix:** `ip001`, `pro001`, `con001`, `win001`, `thus001`, … (see edge catalog below). Animation, if used, follows the ACCEPTED position's chain: the `ip` edge to the ACCEPTED position, its `pro` and `con` edges, and its `thus` edges.                                                                                                         |
+| **IBIS-7** | **`thus` edges** connect an argument or position to a consequence node (text), using the long-dash arrow `--->` (sinks to the bottom, distinct from pro/con). The connection style is uniform: `--->` only. The `thus` set is the **minimal jointly necessary and sufficient conditions for the consequence** — if one edge suffices, there is one; no consequence has two `thus` parents. If the accepted position changes, its no-longer-valid `thus` connections are removed. |
 
-Decision records stay **embedded** in whichever design-doc file already
-covers the topic, inside a `## Decision Record` section, as one or more
-`## <N> <Title>` subsections (e.g. a file about a config-file format
-decision would have `## Decision Record` → `## 1 Choosing a config format`).
-If the project has no per-topic design-doc structure yet, keep them in a
-dedicated project decision log instead.
+### Edge catalog
 
-**Never extract a decision record to a separate file, regardless of
-size.** This is an intentional, confirmed design choice — legibility
-problems are handled by the conventions below (subgraphs, orientation,
-chain summaries), not by moving content out of its topic file.
+| Prefix | Meaning                         | Label                    | Arrow            |
+| ------ | ------------------------------- | ------------------------ | ---------------- |
+| `ip`   | issue → position (billboard)    | none                     | `==>` thick      |
+| `pro`  | benefit argument                | `+`                      | `-->` thin       |
+| `con`  | cost argument                   | `-`                      | `-.->` dotted    |
+| `win`  | supersession                    | `wins over` (no `+`/`-`) | `-->`            |
+| `thus` | argument/position → consequence | none                     | `--->` long-dash |
 
-## Creating a new decision record
+Edge syntax: `<src> <id>@<arrow> <dst>`, with any label inside the
+arrow: `P002 win001@-- "wins over" --> P001`,
+`P001 con001@-. "-" .-> P003["..."]`, `P008 thus001@---> C002("...")`.
 
-1. Check the numbering registry for the next available number, wherever
-   the project keeps one (a table of assigned IDs/titles/files, plus a
-   "next available number" line, typically at the top of a decisions
-   index file — or simply the highest existing number in the project if
-   no such registry exists yet).
-2. Add `## <N> <Title>` at the end of the topic file's existing
-   `## Decision Record` section (create that section, right after the
-   file's prose, if this is the file's first record).
-3. Write one `flowchart TD` (or `LR` if 3+ issues from the start — see
-   orientation rule below) Mermaid block following the legend and ID
-   convention below.
-4. Add the chain-summary line if the diagram has 2+ Issue nodes.
-5. If the project keeps a numbering registry or a cross-topic index,
-   update it with the new record's number, title, and file.
-6. If the decision is load-bearing (later decisions would break if this
-   one were reversed), add or extend its chain — see "Load-bearing
-   chains" below.
-7. Cross-check, optionally: if the project also keeps a plain table of
-   ideas rejected without a full IBIS diagram, check any new CON node
-   against it — add a row there if it's missing.
+## Standard classDef block
 
-## Revising an existing decision
+Every diagram uses this style block verbatim, with a `class` assignment
+for every node and edge:
 
-**Do not edit existing nodes or edges** beyond the one permitted
-exception below (see "Maintaining records").
+```
+classDef issue fill:#2d3748,stroke:#4a5568,color:#fff
+classDef rejected fill:#f00,stroke:#f33,color:#fff
+classDef accepted fill:#0f0,stroke:#3f3,color:#fff
+classDef argument fill:#2c5282,stroke:#2b6cb0,color:#fff
+classDef consequence fill:#2d3748,stroke:#4a5568,color:#fff
+classDef linkPro stroke:#3f3
+classDef linkCon stroke:#f33
+class I011 issue
+class P001 rejected
+class P002 accepted
+class P003,P004,P005,P006,P007,P008,P009,P010 argument
+class C002,C003 consequence
+class pro001,pro002,pro003,pro004 linkPro
+class con001,con002,con003,con004 linkCon
+```
 
-1. Add a new `subgraph` for the new Issue, continuing the Issue-scoped ID
-   prefix (see below).
-2. Draw a dotted arrow (`-.->`) from the old Decision node to the new
-   Issue node.
-3. **Permitted exception:** relabel the superseded Decision node in
-   place — `D1([SUPERSEDED — see D6 — DECIDED ...])`. This is the only
-   in-place edit allowed; every other change is additive.
-4. Re-check whether the decision being revised is part of a load-bearing
-   chain (see "Load-bearing chains" below). If so, flag the downstream
-   decisions that may need re-justification before proceeding.
-5. Update the rejected-ideas table (if the project keeps one) if a
-   previously-accepted position is now rejected.
+## Maintenance
 
-## Legibility rules
+A new revision that changes a decision's answer edits the IBIS **in
+place**:
 
-Apply all of these to new and revised diagrams.
+1. Flip the old position's badge from `ACCEPTED` to `REJECTED` (and its
+   class from `accepted` to `rejected`).
+2. Add a `win` edge labeled `wins over` from the new `ACCEPTED`
+   position to the old one.
+3. Append new arguments as nodes.
+4. Remove `thus` edges whose accepted-position parent no longer holds.
 
-1. **Chain summary line.** Immediately above any diagram with 2+ Issue nodes, add one
-   plain-prose line naming the chain in order:
-   `**Chain:** I1 file format → I2 schema validation → I3 migration strategy.`
-   Skip this for single-issue diagrams — it adds no value there.
+A wholly new issue opens a new IBIS diagram. Older records are brought
+inline with this format when they are touched.
 
-2. **Per-Issue `subgraph` grouping.** Wrap each Issue's cluster (its Issue node, its
-   Positions, Arguments, and Decision) in a titled Mermaid `subgraph`:
-
-   ```
-   subgraph S1["I1: How wide is an alias rename allowed to reach"]
-       I1{{...}}
-       P1[...]
-       ...
-   end
-   ```
-
-   Subgraph IDs (`S1`, `S2`, ...) must be unique across the whole diagram, not just
-   within one issue's cluster. Dotted "forced reopening" arrows cross subgraph
-   boundaries freely in Mermaid — draw them **outside** the subgraph blocks, after the
-   subgraph they originate from.
-
-3. **Orientation.** Diagrams with 3+ issues use `flowchart LR` so the chain reads
-   left-to-right like a timeline instead of growing indefinitely tall. Diagrams with 1–2
-   issues keep `flowchart TD` (matches the single/double-issue examples).
-
-4. **ID convention.** The first Issue keeps plain global IDs (`I1`, `P1`, `P2`, `C1`,
-   `A1`, `D1`, `M1`, ...). Every subsequent Issue's cluster uses that issue's number as a
-   prefix with a lettered suffix instead of continuing the global counter: `I2`, `P2a`,
-   `P2b`, `C2a`, `A2a`, `M2a`. Decision nodes use just the issue number (`D2`) unless an
-   issue has more than one Decision, in which case letter them too (`D2a`, `D2b`). This
-   keeps each subgraph's contents self-describing without cross-referencing a flat
-   `P1..P11` counter.
-
-5. **Superseded-decision marking.** When a past Decision is genuinely overturned — not
-   just "forced a new issue," which is the normal forward-consequence case — relabel the
-   old stadium node in place: `D1([SUPERSEDED — see D6 — DECIDED ...])`. This is the one
-   edit allowed alongside adding the new Issue node. Apply it only when a decision is
-   truly reversed, not extended.
-
-### Worked example
-
-A minimal 2-issue diagram about choosing a config-file format, demonstrating the
-subgraph/chain-summary/ID conventions in practice:
-
-**Chain:** I1 config format → I2 schema validation.
+## Worked example
 
 ```mermaid
 flowchart TD
-    subgraph S1["I1: Which file format should the project's config use"]
-        I1{{Which file format should the project's config use}}
-        P1[JSON]
-        P2[YAML]
-        I1 --> P1
-        I1 --> P2
-        C1(CON YAML has no native parser in the target runtime)
-        P2 --> C1
-        A1(PRO JSON has a native parser with zero dependencies)
-        A2(PRO JSON's stricter grammar leaves less room for ambiguous indentation bugs)
-        P1 --> A1
-        P1 --> A2
-        D1([DECIDED JSON])
-        P1 ==> D1
-    end
-    D1 -.-> I2
-    subgraph S2["I2: Should the config be schema-validated at load time"]
-        I2{{Should the config be schema-validated at load time}}
-        P2a[No validation, trust the file]
-        P2b[Validate against a JSON Schema on load]
-        I2 --> P2a
-        I2 --> P2b
-        C2a(CON A malformed config fails silently deep inside unrelated code)
-        P2a --> C2a
-        A2a(PRO A validation error at load time points directly at the bad field)
-        P2b --> A2a
-        D2([DECIDED validate on load])
-        P2b ==> D2
-    end
+  I011{{"(Rev 8.6)<br/>Issue: How is a namespace excluded<br/>from a file represented?"}}
+
+  I011 ip001@==> P001(["REJECTED<br/>(Rev 8.6)<br/>Persisted negative cache<br/>filteredNamespaces array"])
+  I011 ip002@==> P002(["ACCEPTED<br/>(Rev 8.6)<br/>Absence-as-mask<br/>no content row = masked"])
+
+  P002 win001@-- "wins over" --> P001
+
+  P001 con001@-. "-" .-> P003["(Rev 8.6 - cost)<br/>Needs masked/eligible<br/>transition detection"]
+  P001 con002@-. "-" .-> P004["(Rev 8.6 - cost)<br/>Needs bulk-clear<br/>on filter change"]
+  P001 con003@-. "-" .-> P005["(Rev 8.6 - cost)<br/>Needs its own<br/>GC category"]
+  P001 pro001@-- "+" --> P006["(Rev 8.6 - benefit)<br/>Retains reason and message for diagnostics"]
+
+  P002 pro002@-- "+" --> P007["(Rev 8.6 - benefit)<br/>No transition semantics at all"]
+  P002 pro003@-- "+" --> P008["(Rev 8.6 - benefit)<br/>One read rule:<br/>row absent = null"]
+  P002 pro004@-- "+" --> P009["(Rev 8.6 - benefit)<br/>GC categories collapse"]
+  P002 con004@-. "-" .-> P010["(Rev 8.6 - cost)<br/>Loses reason; unmask needs<br/>full recompute"]
+
+  P008 thus001@---> C002("INV-06")
+  P008 thus002@---> C003("no file:filtered event needed")
+
+  classDef issue fill:#2d3748,stroke:#4a5568,color:#fff
+  classDef rejected fill:#f00,stroke:#f33,color:#fff
+  classDef accepted fill:#0f0,stroke:#3f3,color:#fff
+  classDef argument fill:#2c5282,stroke:#2b6cb0,color:#fff
+  classDef consequence fill:#2d3748,stroke:#4a5568,color:#fff
+  classDef linkPro stroke:#3f3
+  classDef linkCon stroke:#f33
+  class I011 issue
+  class P001 rejected
+  class P002 accepted
+  class P003,P004,P005,P006,P007,P008,P009,P010 argument
+  class C002,C003 consequence
+  class pro001,pro002,pro003,pro004 linkPro
+  class con001,con002,con003,con004 linkCon
+
+  ip002@{ animate: true }
+  pro002@{ animate: true }
+  pro003@{ animate: true }
+  pro004@{ animate: true }
+  con004@{ animate: true }
+  thus001@{ animate: true }
+  thus002@{ animate: true }
 ```
-
-## Load-bearing chains
-
-Some decisions are load-bearing — later decisions assume them and would
-break if reversed in isolation. Track these as a small `flowchart LR`
-chaining short decision-name nodes with `-->`, kept wherever the
-project's numbering registry lives (or alongside the decision records
-themselves if no registry exists).
-
-```mermaid
-flowchart LR
-    N1[Config format is JSON]
-    N2[Schema validation runs on load]
-    N3[Invalid config aborts startup with a pointed error]
-    N1 --> N2 --> N3
-```
-
-Before overturning any decision, check whether it appears in one of these
-chains — reversing it in isolation may silently break every decision
-downstream of it.
-
-## Maintaining records
-
-Do not edit an existing graph in place — add a new Issue node whose
-incoming dotted arrow comes from the decision that forced the reopening,
-and mark the superseded Decision node in place (the one permitted
-exception). The value is the trail, not just the current state.
-
-If the project keeps a separate rejected-ideas table, every entry there
-should resolve to a CON node somewhere; if it doesn't, the rejection was
-never actually argued.
 
 ## Checklist
 
 Before committing a new or revised decision record, confirm:
 
-- [ ] Numbering checked against the project's own registry, if one exists
-- [ ] Legend shapes correct (hexagon/rectangle/rounded/stadium)
-- [ ] Chain summary line present if 2+ issues
-- [ ] Subgraphs present if 2+ issues, with unique IDs
-- [ ] Orientation correct for issue count (`TD` for 1–2, `LR` for 3+)
-- [ ] Project's own numbering registry updated, if one exists
-- [ ] Cross-topic index updated, if the project keeps one
-- [ ] Load-bearing chains checked and updated if relevant
-- [ ] Rejected-ideas table cross-checked for any newly-argued rejection, if the project keeps one
+- [ ] Exactly one `ACCEPTED` node; every previously-accepted position
+      reachable via the `wins over` chain
+- [ ] Every node carries a `Rev N.N` tag
+- [ ] Every argument badged `cost` or `benefit`; every pro/con edge
+      labeled `+`/`-` with matching prefix/arrow style
+- [ ] Edge IDs use typed prefixes with 3-digit suffixes starting at
+      `001`, none re-used
+- [ ] `thus` edges are minimal jointly-sufficient; no consequence has
+      two `thus` parents; none dangle from rejected positions
+- [ ] Standard classDef block present; animation (if any) only on the
+      ACCEPTED chain
+- [ ] Retired spec numbers cited in the record, not re-used in the spec

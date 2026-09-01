@@ -99,6 +99,7 @@ Follow Obsidian's Developer Policies and Plugin Guidelines. In particular:
 - Design principles: `docs/principles.md`.
 - Example file structure, common task code snippets, UI copy/UX
   guidelines: `obsidian-plugin-patterns` skill.
-- Creating or revising a decision record (IBIS diagrams recording a
-  design decision's reasoning and history): load the
+- Creating or revising a decision record (rev-tagged IBIS diagrams
+  recording a design decision's reasoning and history, with `wins over`
+  supersession and `thus` consequence edges): load the
   `spec-decision-records` skill.
