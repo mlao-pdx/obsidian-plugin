@@ -25,8 +25,8 @@ implements that interface against the real Obsidian API or Dexie schema.
 ## Current adapters
 
 `src/adapters/` holds implementations, living outside `src/core`/`src/ports`
-per the rule below. First one: `ObsidianLoggerAdapter` implements
-`LoggerPort`.
+per the rule below: `ObsidianLoggerAdapter` implements `LoggerPort`, and
+`DexiePersistenceAdapter` implements `PersistencePort`.
 
 ## `LoggerPort` design rationale
 

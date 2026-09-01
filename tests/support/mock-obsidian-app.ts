@@ -10,7 +10,7 @@
  * `vi.mock('obsidian', () => import('../support/mock-obsidian-app'));`
  *
  * Keep this intentionally small: cover only what those files currently
- * touch (`addSettingTab`, `loadData`/`saveData`, and the
+ * touch (`addSettingTab`, `register`, `loadData`/`saveData`, and the
  * `PluginSettingTab`/`Setting` constructors they call, plus `Notice` and
  * `normalizePath` for the logger adapter). Grow it only as those files
  * grow — do not pre-build mock surface for unused Obsidian APIs.
@@ -19,6 +19,7 @@
 export class Plugin {
 	app: unknown;
 	manifest: unknown;
+	readonly registeredCleanups: Array<() => unknown> = [];
 
 	constructor(app: unknown, manifest: unknown) {
 		this.app = app;
@@ -27,6 +28,10 @@ export class Plugin {
 
 	addSettingTab(_settingTab: unknown): void {}
 
+	register(callback: () => unknown): void {
+		this.registeredCleanups.push(callback);
+	}
+
 	async loadData(): Promise<unknown> {
 		return undefined;
 	}
@@ -34,8 +39,19 @@ export class Plugin {
 	async saveData(_data: unknown): Promise<void> {}
 }
 
+/**
+ * Messages passed to `Notice` constructions, in order. Tests assert on
+ * this to verify user-visible failure surfaces (e.g. the persistence
+ * adapter's latched untrusted-database Notice).
+ */
+export const noticeMessages: string[] = [];
+
 export class Notice {
-	constructor(_message?: string) {}
+	constructor(message?: string) {
+		if (message !== undefined) {
+			noticeMessages.push(message);
+		}
+	}
 }
 
 export class PluginSettingTab {
@@ -145,9 +161,28 @@ export function normalizePath(path: string): string {
 
 export class App {}
 
+/**
+ * Minimal stand-in for Obsidian's `FileSystemAdapter`. `MyPlugin` is
+ * desktop-only, so `onload()` narrows `vault.adapter` to this class via
+ * `instanceof` and reads the vault root from it.
+ */
+export class FileSystemAdapter {
+	getBasePath(): string {
+		return '/mock/vault';
+	}
+
+	getFullPath(normalizedPath: string): string {
+		return normalizedPath === '' ? '/mock/vault' : `/mock/vault/${normalizedPath}`;
+	}
+}
+
 /** A minimal `app` value sufficient for `MyPlugin`'s current `onload()`. */
 export function createMockApp(): unknown {
-	return {};
+	return {
+		vault: {
+			adapter: new FileSystemAdapter(),
+		},
+	};
 }
 
 /** A minimal `manifest` value sufficient to construct `MyPlugin`. */

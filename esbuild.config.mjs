@@ -65,7 +65,11 @@ const context = await esbuild.context({
 		'@lezer/common',
 		'@lezer/highlight',
 		'@lezer/lr',
+		// Node builtins under both specifier forms — `builtinModules` lists
+		// only the unprefixed names, but source imports use `node:` prefixes
+		// (e.g. `node:crypto` in the persistence adapter helpers).
 		...builtinModules,
+		...builtinModules.map((name) => `node:${name}`),
 	],
 	format: 'cjs',
 	target: 'es2022',

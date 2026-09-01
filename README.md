@@ -17,12 +17,19 @@ See [Design principles](docs/principles.md) for the 7 guiding choices this templ
 
 The template ships [Dexie](https://dexie.org) as its persistence layer —
 the supported API over IndexedDB, never raw IndexedDB used directly.
-`src/ports/persistence-port.ts` is the technology-agnostic shape `src/core`
-depends on; a Dexie-backed adapter implements it in `src/adapters` (see the
-`dexie-persistence-adapter` skill for schema and transaction patterns). A
-plugin generated from this template that persists nothing can delete the
-port and the `dexie` dependency wholesale; one that persists anything does
-so through Dexie.
+`src/ports/persistence-port.ts` is the technology-agnostic shape
+`src/core` depends on; `src/adapters/dexie-persistence-adapter.ts`
+implements it (see the `dexie-persistence-adapter` skill for schema and
+transaction patterns). Everything persisted is a rebuildable derived
+cache — never a source of truth — in a database addressed to this plugin
+and this vault location and verified against a per-vault identity; see
+`docs/dev/indexeddb-database-identity.md` for the naming/identity scheme.
+A plugin generated from this template that persists nothing can delete the
+port, the persistence adapter modules in `src/adapters/`
+(`dexie-persistence-adapter.ts`, `database-bootstrap.ts`,
+`database-identity.ts`, `persistence-db-name.ts`), the `dexie` dependency
+and the `fake-indexeddb` devDependency, and the persistence wiring in
+`src/main.ts`; one that persists anything does so through Dexie.
 
 ## Support policy
 

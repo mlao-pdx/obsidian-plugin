@@ -82,6 +82,29 @@ export default defineConfig(
 		},
 	},
 	{
+		// `fake-indexeddb` is a test-only shim. It must never reach a
+		// production path: the adapter gets IndexedDB from the ambient
+		// globals (or an injected `IDBFactory` via `DexieOptions`), and the
+		// shim is wired in only from `tests/`. Separate block from the
+		// hexagon rule above because its scope is all of `src/**`, not just
+		// core/ports.
+		files: ['src/**/*.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: ['fake-indexeddb', 'fake-indexeddb/*'],
+							message:
+								'fake-indexeddb is a test-only shim — production code must use the ambient IndexedDB (injected via DexieOptions), never the fake.',
+						},
+					],
+				},
+			],
+		},
+	},
+	{
 		// This project is a template, not a fork of the sample plugin
 		// preparing to publish under new names — it deliberately keeps
 		// `obsidian-sample-plugin`'s own class names as its identity (see

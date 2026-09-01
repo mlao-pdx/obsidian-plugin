@@ -22,37 +22,32 @@ algorithms depend only on `PersistencePort` (`src/ports/persistence-port.ts`);
 this skill's patterns belong in the adapter module that implements that
 interface, never inside `src/core` or `src/ports` themselves.
 
-## Schema declaration matching `PersistencePort`'s row shapes
+The inverse guard applies to the test shim: `fake-indexeddb` is banned under
+`src/**` by a second `no-restricted-imports` block. It reaches Dexie only
+through the `{ indexedDB, IDBKeyRange }` pair passed into
+`DexiePersistenceAdapter`'s constructor (forwarded to `PluginDatabase` as
+`DexieOptions`) — never by patching globals, and never from production code.
 
-Table schemas below mirror the row shapes declared in
-`src/ports/persistence-port.ts` — keep the adapter's persisted shape and
-the port's row interfaces in sync when either changes. The port ships with
-one illustrative `ExampleRecord` shape; real projects will have several
-tables, so this example is written with two to show how a multi-table
-schema and a multi-table transaction fit together.
+## Schema declaration matching the adapter
+
+The shipped schema (`src/adapters/dexie-persistence-adapter.ts`) declares two
+tables: `identity` (bootstrap bookkeeping) and `records` (the example
+application table):
 
 ```ts
-import { Dexie, type Table } from 'dexie';
+import { Dexie, type DexieOptions, type Table } from 'dexie';
 import type { ExampleRecord } from '@ports/persistence-port';
+import type { DatabaseIdentityRecord } from './database-identity';
 
-/** A second illustrative row shape, referencing `ExampleRecord` by id. */
-export interface ExampleTagRow {
-	readonly recordId: number;
-	readonly tag: string;
-}
-
-export class AppDb extends Dexie {
+export class PluginDatabase extends Dexie {
+	identity!: Table<DatabaseIdentityRecord, string>;
 	records!: Table<ExampleRecord, number>;
-	tags!: Table<ExampleTagRow, number>;
 
-	constructor(vaultId: string) {
-		// One database per vault — the vault-scoped name is what makes
-		// this a per-vault, not per-plugin, database.
-		super(`my-plugin/${vaultId}`);
-
+	constructor(name: string, options?: DexieOptions) {
+		super(name, options);
 		this.version(1).stores({
-			records: 'id, value',
-			tags: '[recordId+tag], recordId, tag',
+			identity: 'key',
+			records: 'id',
 		});
 	}
 }
@@ -64,29 +59,44 @@ export class AppDb extends Dexie {
   arrays of indexable keys, and typed arrays/`ArrayBuffer` — never `boolean`,
   `null`, `undefined`, or a plain object. A field typed `T | undefined` is
   simply unindexed for rows where it's absent (sparse index), not an error.
+- The `identity` table is not application data: it holds the singleton
+  continuity record the bootstrap verifies. It is the **first write** on
+  create/recreate, must survive `clear()` (which wipes `records` only), and
+  must never be read before the rest of the database is trusted. Replace
+  `ExampleRecord`/`records` with your plugin's real row shapes; leave
+  `identity` alone.
 - Dexie 4 auto-detects schema changes on load; incrementing `version()` on a
   pure additive change is optional but still best practice (saves ~1ms on
   open). Only a genuine schema edit needs the version bump below.
 
-## Atomic multi-table transaction pattern
+## Database naming and identity — pointer, not restatement
 
-When a write spans multiple tables and any in-memory value must be
-resolved before the write is durable (e.g. a computed id or derived
-field), resolve it **in memory first**, then commit the full write in a
-single atomic Dexie transaction — `PersistencePort` must never receive a
-write before that value is known, and a partially-written row must never
-be observable to a reader.
+The database **address** (`{pluginId}/{databaseId}/{vaultRootHash}`), the
+persisted **vault-instance identity**, the verification table, and the
+crash-consistency ordering are normative in
+`docs/dev/indexeddb-database-identity.md`. Read that document before
+touching `database-bootstrap.ts`, `database-identity.ts`,
+`persistence-db-name.ts`, or anything that renames a database. Two rules
+from it that shape adapter code directly:
+
+- `databaseId` (`"cache"` in `main.ts`) is stable like `manifest.id` —
+  renaming it orphans every user's database.
+- Existence checks use the injected `IDBFactory.databases()`, deletion the
+  Dexie **instance** `db.delete()`. The statics `Dexie.exists()`/
+  `Dexie.delete()` take no options and hit the ambient global, bypassing any
+  injected fake — never use them.
+
+## Atomic transaction pattern
+
+When a write spans multiple tables and any in-memory value must be resolved
+before the write is durable (e.g. a computed id or derived field), resolve it
+**in memory first**, then commit the full write in a single atomic Dexie
+transaction — `PersistencePort` must never receive a write before that value
+is known, and a partially-written row must never be observable to a reader.
 
 ```ts
-async function putRecordWithTag(
-	db: AppDb,
-	record: ExampleRecord,
-	tag: ExampleTagRow,
-): Promise<void> {
-	await db.transaction('rw', db.records, db.tags, async () => {
-		await db.records.put(record);
-		await db.tags.put(tag);
-	});
+async function putMany(db: PluginDatabase, records: readonly ExampleRecord[]): Promise<void> {
+	await db.transaction('rw', db.records, () => db.records.bulkPut([...records]));
 }
 ```
 
@@ -117,11 +127,27 @@ async function putRecordWithTag(
   confuse an app-domain column (e.g. an owner/grouping id specific to your
   domain model) with one of Dexie Cloud's own reserved columns.
 
-## One-database-per-vault schema note & versioning
+## Testing pattern
 
-One Dexie database per vault is the expected topology for a vault-scoped
-plugin; `PersistencePort` is only an interface in front of that database,
-not a new storage topology.
+Tests import the shim **as values** and inject a fresh instance per test —
+each `new IDBFactory()` is its own isolated storage, so no unique database
+names or teardown are needed:
+
+```ts
+import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
+
+const factory = new IDBFactory();
+const adapter = new DexiePersistenceAdapter(pluginId, databaseId, vaultRoot, ensure, logger, {
+	indexedDB: factory,
+	IDBKeyRange,
+});
+```
+
+Never import `fake-indexeddb/auto` (global patching) — the lint guard and
+the injection point exist precisely so tests and production share one code
+path with no ambient mutation.
+
+## Schema versioning
 
 ```ts
 // Adding a column/table: edit the *existing* version block and bump the
@@ -147,6 +173,11 @@ this.version(3)
 - `upgrade()` callbacks only ever migrate _forward_; Dexie 4 supports schema
   downgrade detection, but there's no downgrade counterpart to `upgrade()` —
   a downgraded schema version triggers a clear/rebuild path instead.
+- Remember the cache invariant before reaching for migrations: everything in
+  IndexedDB is rebuildable derived cache. When a migration is more work than
+  a rebuild, bumping the identity record's `format` (or the database
+  address) and recreating is the intended escape hatch — see
+  `docs/dev/indexeddb-database-identity.md`.
 - Sources for schema/versioning/transaction detail beyond this skill:
   `https://dexie.org/docs/Dexie/Dexie.version()`,
   `https://dexie.org/docs/Dexie/Dexie.transaction()`, and the index at
