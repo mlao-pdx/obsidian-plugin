@@ -4,6 +4,6 @@
   "version": "0.1.0",
   "minAppVersion": "1.13.0",
   "description": "An empty Obsidian plugin template with a hexagon architecture.",
-  "author": "",
+  "author": "B.P. \"Beppie\" Shortway",
   "isDesktopOnly": true
 }

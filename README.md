@@ -11,6 +11,22 @@ TSDoc `@remarks` convention.
 
 > **Status: template.** Not in the community plugin catalogue.
 
+## Using this template
+
+This repo is a template: fork it, then work through this checklist before
+your first release. Every item replaces an intentional placeholder.
+
+- [ ] `manifest.json` — set `id` (unique, kebab-case, and stable forever:
+      never rename it after release), `name`, `description`, and `author`.
+- [ ] `package.json` — set `name`, `description`, and `keywords`, and add
+      `repository`/`bugs`/`homepage` fields.
+- [ ] `LICENSE` — set the copyright holder and year (and refresh
+      `THIRD-PARTY-NOTICES.md` if the dependency set or licences change).
+- [ ] `src/settings.ts` — rename `MyPlugin`, `MyPluginSettings`, and
+      `SampleSettingTab`, and remove or repurpose the sample `exampleSetting`
+      field/UI ("Settings #1" / "It's a secret").
+- [ ] Delete this checklist section once done.
+
 See [Design principles](docs/principles.md) for the 7 guiding choices this template ships with.
 
 ## Persistence

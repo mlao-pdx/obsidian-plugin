@@ -1,5 +1,5 @@
 ---
-description: Run after adding or upgrading a dependency, before committing — audits production dependency licenses and drafts any missing THIRD-PARTY-NOTICES.md entries.
+description: Run after adding or upgrading a dependency, before committing — audits production dependency licenses and drafts any missing THIRD-PARTY-NOTICES.md entries. The check is CI-enforced.
 ---
 
 Run `npm run check:licenses` and report the result.
@@ -38,6 +38,8 @@ Steps:
      script but never silently rewritten wholesale.
 4. Re-run `npm run check:licenses` after updating the notices file to
    confirm it now passes.
-5. This check is intentionally **local-only** — it is not wired into
-   `.github/workflows/lint.yml`. Do not add it there unless the user
-   explicitly asks to revisit that decision.
+5. This check also runs in CI via `.github/workflows/lint.yml` on every
+   push and pull request, so a failing audit blocks CI as well. The local
+   run exists for drafting `THIRD-PARTY-NOTICES.md` entries: run it after
+   adding or upgrading a dependency so any missing notices are drafted and
+   added before you commit.

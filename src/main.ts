@@ -54,7 +54,7 @@ export default class MyPlugin extends Plugin {
 	}
 
 	override onunload() {
-		this.loggerAdapter.log('info', `${this.manifest.name} unloaded`);
+		this.loggerAdapter?.log('info', `${this.manifest.name} unloaded`);
 	}
 
 	async loadSettings() {

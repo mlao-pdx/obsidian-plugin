@@ -1,5 +1,6 @@
 {
   "name": "obsidian-sample-plugin",
+  "author": "B.P. \"Beppie\" Shortway",
   "version": "0.1.0",
   "description": "An empty Obsidian plugin template with a hexagon architecture.",
   "main": "main.js",
@@ -22,7 +23,7 @@
     "check:licenses": "node scripts/check-licenses.mjs"
   },
   "keywords": [],
-  "license": "0-BSD",
+  "license": "0BSD",
   "lint-staged": {
     "*.{ts,tsx,js,mjs,mts,cts,json,md,yml,yaml,css}": "prettier --write"
   },
