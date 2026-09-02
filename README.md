@@ -25,7 +25,39 @@ your first release. Every item replaces an intentional placeholder.
 - [ ] `src/settings.ts` — rename `MyPlugin`, `MyPluginSettings`, and
       `SampleSettingTab`, and remove or repurpose the sample `exampleSetting`
       field/UI ("Settings #1" / "It's a secret").
+- [ ] Protect the default branch: create a branch ruleset with
+      "Block force pushes" and "Restrict deletions" (see "Protecting the
+      default branch" below).
 - [ ] Delete this checklist section once done.
+
+### Protecting the default branch
+
+GitHub warns that your main branch isn't protected. For a solo repo the fix is
+a branch ruleset that blocks force pushes and deletions only — no pull-request
+or status-check requirements, so it doesn't slow down working directly on the
+default branch.
+
+1. Open the repo's **Settings → Rules → Rulesets** (or visit
+   `https://github.com/<owner>/<repo>/settings/rules`).
+2. Click **New ruleset → New branch ruleset**.
+3. Set:
+   - **Ruleset name** — anything, e.g. `protect-main`
+   - **Enforcement status** — `Active`
+   - **Target branches** — **Add target → Include default branch**
+   - **Block force pushes** — on
+   - **Restrict deletions** — on
+   - leave everything else (pull requests, status checks, signed commits,
+     linear history) off
+4. Click **Create**.
+
+Verify: GitHub's "main branch isn't protected" warning disappears from the
+repo's front page. Two caveats:
+
+- Rulesets are available on the Free plan for public repositories; a private
+  repository may need a paid plan.
+- With "Block force pushes" on, admins cannot rename the default branch until
+  they bypass or delete the ruleset, so remove it first if you ever rename
+  `main`.
 
 See [Design principles](docs/principles.md) for the 7 guiding choices this template ships with.
 
